@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 # 폰트 설정
 font_path = os.path.join("fonts", "NotoSansKR-VariableFont_wght.ttf")
 fontprop = fm.FontProperties(fname=font_path)
-plt.rcParams['font.family'] = fontprop.get_name()
+plt.rcParams['font.family'] = 'Noto Sans KR' 
 plt.rcParams['axes.unicode_minus'] = False
 
 
