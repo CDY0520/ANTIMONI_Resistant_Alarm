@@ -24,7 +24,6 @@ plt.rcParams['axes.unicode_minus'] = False
 st.set_page_config(layout="wide")
 st.title("\U0001F4C8 이상치 탐지 모니터링")
 st.write("예측 결과 및 이상치 경보를 확인하세요.")
-st.write("\U0001F4DC 사용 중인 matplotlib 폰트:", fontprop.get_name())
 
 # 선택 박스
 col1, col2 = st.columns(2)
