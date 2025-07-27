@@ -132,7 +132,7 @@ def plot_graph(df, title_text, y_label, current_date):
     ordered_labels = [lbl for lbl in order if lbl in label_handle_map]
 
     ax.legend(ordered_handles, ordered_labels,
-              fontsize=4, markerscale=0.7, loc='upper left', frameon=False)
+              fontsize=4, markerscale=0.7, loc='upper left', frameon=False, fontproperties=fontprop)
 
     st.pyplot(fig)
 
