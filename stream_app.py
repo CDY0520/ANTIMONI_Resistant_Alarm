@@ -16,7 +16,7 @@ warnings.filterwarnings('ignore')
 plt.rcParams['font.family'] = 'Malgun Gothic'
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['font.family'] = font_prop.get_name()
-font_path = './fonts/NotoSansKR-Regular.ttf'
+font_path = './fonts/NotoSansKR-VariableFont_wght.ttf'
 font_prop = fm.FontProperties(fname=font_path)
 
 
