@@ -28,6 +28,9 @@ st.set_page_config(layout="wide")
 st.title("📈 이상치 탐지 모니터링")
 st.write("예측 결과 및 이상치 경보를 확인하세요.")
 
+# ✅ 현재 적용된 matplotlib 폰트 확인용
+st.write("📋 사용 중인 matplotlib 폰트:", fontprop.get_name())
+
 
 
 
