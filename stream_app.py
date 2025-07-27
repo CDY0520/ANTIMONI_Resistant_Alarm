@@ -19,7 +19,7 @@ plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['font.family'] = font_prop.get_name()
 
 font_path = './fonts/NotoSansKR-VariableFont_wght.ttf'
-fontprop = fm.FontProperties(fname=font_path)
+font_prop = fm.FontProperties(fname=font_path)
 
 
 
