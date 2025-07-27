@@ -17,8 +17,11 @@ warnings.filterwarnings('ignore')
 # 폰트 설정
 font_path = os.path.join("fonts", "NotoSansKR-VariableFont_wght.ttf")
 fontprop = fm.FontProperties(fname=font_path)
+
 plt.rcParams['font.family'] = fontprop.get_name()
 plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['legend.fontsize'] = 3
+plt.rcParams['legend.fontproperties'] = fontprop
 
 
 # 1. Streamlit 설정
@@ -108,10 +111,10 @@ def plot_graph(df, title_text, y_label, current_date):
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
 
     # 축/글자 설정
-    ax.set_title(title_text, fontproperties=fontprop)
-    ax.set_xlabel("날짜", fontproperties=fontprop)
-    ax.set_ylabel(y_label, fontproperties=fontprop)
-    ax.tick_params(axis='both', labelsize=4, colors='#2B2D42')
+    ax.set_title(title_text, fontsize=5, color='#111111', fontproperties=fontprop)
+    ax.set_xlabel("날짜", fontsize=4, color='#111111', fontproperties=fontprop)
+    ax.set_ylabel(y_label, fontsize=4, color='#111111', fontproperties=fontprop)
+    ax.tick_params(axis='both', labelsize=3, colors='#111111')
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
     plt.xticks(rotation=45)
@@ -132,7 +135,7 @@ def plot_graph(df, title_text, y_label, current_date):
     ordered_labels = [lbl for lbl in order if lbl in label_handle_map]
 
     ax.legend(ordered_handles, ordered_labels,
-              fontsize=4, markerscale=0.7, loc='upper left', frameon=False, fontproperties=fontprop)
+          fontsize=3, markerscale=0.7, loc='upper left', frameon=False)
 
     st.pyplot(fig)
 
