@@ -14,7 +14,7 @@ logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
 logging.getLogger('prophet').setLevel(logging.WARNING)
 warnings.filterwarnings('ignore')
 
-# ✅ 폰트 설정
+# 폰트 설정
 font_path = os.path.join("fonts", "NotoSansKR-VariableFont_wght.ttf")
 if not os.path.exists(font_path):
     st.error(f"❌ 폰트 파일 경로 오류: {font_path} 에 파일이 없습니다.")
@@ -23,11 +23,10 @@ else:
     plt.rcParams['font.family'] = fontprop.get_name()
     plt.rcParams['axes.unicode_minus'] = False
 
-# ✅ Streamlit UI 시작
+# Streamlit UI 시작
 st.set_page_config(layout="wide")
 st.title("📈 이상치 탐지 모니터링")
 st.write("예측 결과 및 이상치 경보를 확인하세요.")
-st.write("📋 사용 중인 matplotlib 폰트:", fontprop.get_name())
 
 # 드롭다운 메뉴
 col1, col2 = st.columns(2)
@@ -72,15 +71,18 @@ def plot_graph(df, title_text, y_label, current_date):
             marker='o', linestyle='--', color='red',
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
+    # 이상치
+    outlier_label_added = False
     if '경보' in df.columns:
         outlier_rows = df[df['경보'].fillna(False)]
         for _, row in outlier_rows.iterrows():
             edge_color = 'black' if row['ds'] == current_date else 'gray'
             ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
-                    markeredgecolor=edge_color, label='이상치')
+                    markeredgecolor=edge_color,
+                    label='이상치' if not outlier_label_added else None)
+            outlier_label_added = True
 
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
-
     ax.set_title(title_text, fontsize=7, fontproperties=fontprop)
     ax.set_xlabel("날짜", fontsize=6, fontproperties=fontprop)
     ax.set_ylabel(y_label, fontsize=6, fontproperties=fontprop)
@@ -160,7 +162,7 @@ with left_col:
             raw_df = pd.read_excel(file)
             raw_df['ds'] = pd.to_datetime(raw_df['ds'])
             df = raw_df[(raw_df['ds'] >= '2023-01-01') & (raw_df['ds'] <= '2023-12-31')].copy()
-            st.subheader(f"🏥 {hospital_choice}")
+            st.subheader(f" {hospital_choice}")
             plot_graph(df, title, ylabel, current_date)
             render_alarms([(hospital_choice, raw_df)], current_date)
         else:
@@ -174,7 +176,7 @@ with right_col:
             raw_df = pd.read_excel(file)
             raw_df['ds'] = pd.to_datetime(raw_df['ds'])
             df = raw_df[(raw_df['ds'] >= '2023-01-01') & (raw_df['ds'] <= '2023-12-31')].copy()
-            st.subheader(f"🌎 {community_choice}")
+            st.subheader(f" {community_choice}")
             plot_graph(df, title, ylabel, current_date)
             render_alarms([(community_choice, raw_df)], current_date)
         else:
