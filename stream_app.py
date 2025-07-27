@@ -14,12 +14,12 @@ logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
 logging.getLogger('prophet').setLevel(logging.WARNING)
 warnings.filterwarnings('ignore')
 
-plt.rcParams['axes.unicode_minus'] = False
-
 # 폰트 설정
 font_path = os.path.join("fonts", "NotoSansKR-VariableFont_wght.ttf")
 fontprop = fm.FontProperties(fname=font_path)
 plt.rcParams['font.family'] = fontprop.get_name()
+plt.rcParams['axes.unicode_minus'] = False
+
 
 
 
