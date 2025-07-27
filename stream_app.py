@@ -74,8 +74,8 @@ def plot_graph(df, title_text, y_label, current_date):
     past_mask = df['ds'] < current_date
     current_mask = df['ds'] == current_date
 
-    fig, ax = plt.subplots(figsize=(6, 2.2))  # 👈 작고 넓게
-    fig.patch.set_facecolor('#FFF7F0')  # 전체 배경색
+    fig, ax = plt.subplots(figsize=(6, 2.2))
+    fig.patch.set_facecolor('#FFF7F0')
 
     # 신뢰구간
     ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'],
@@ -108,9 +108,9 @@ def plot_graph(df, title_text, y_label, current_date):
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
 
     # 축/글자 설정
-    ax.set_title(title_text, fontsize=6, color='#2B2D42')
-    ax.set_xlabel("날짜", fontsize=5, color='#2B2D42')
-    ax.set_ylabel(y_label, fontsize=5, color='#2B2D42')
+    ax.set_title(title_text, fontproperties=fontprop)
+    ax.set_xlabel("날짜", fontproperties=fontprop)
+    ax.set_ylabel(y_label, fontproperties=fontprop)
     ax.tick_params(axis='both', labelsize=4, colors='#2B2D42')
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
