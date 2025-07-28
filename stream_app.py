@@ -236,21 +236,34 @@ left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 # 왼쪽: 통합 경보
 with left_panel:
     st.markdown("### 🛎️ 통합 경보")
+    hospital_df, community_df = None, None
 
-    # 파일 존재 시 로드 및 처리
     if hospital_choice != "선택":
         file, title, ylabel = hospital_file_map[hospital_choice]
         if os.path.exists(file):
-            # 파일 처리
-    else:
-        st.warning(f"⚠️ [{file}] 파일이 없습니다.")
+            hospital_df = pd.read_excel(file)
+            hospital_df.columns = hospital_df.columns.str.strip()
+            hospital_df['ds'] = pd.to_datetime(hospital_df['ds'])
+        else:
+            st.warning(f"⚠️ [{file}] 파일이 없습니다.")
 
     if community_choice != "선택":
         file, title, ylabel = community_file_map[community_choice]
         if os.path.exists(file):
-            # 파일 처리
+            community_df = pd.read_excel(file)
+            community_df.columns = community_df.columns.str.strip()
+            community_df['ds'] = pd.to_datetime(community_df['ds'])
+        else:
+            st.warning(f"⚠️ [{file}] 파일이 없습니다.")
+
+    if hospital_df is not None and community_df is not None:
+        level = get_alarm_level(hospital_df, community_df, current_date)
+        color = level_color_map[level]
+
+        draw_gauge(level, color)
+        st.markdown(f"#### 현재 레벨: {level}단계 ({color})")
     else:
-        st.warning(f"⚠️ [{file}] 파일이 없습니다.")
+        st.warning("📁 병원 또는 지역사회 경보 파일을 찾을 수 없습니다.")
 
         # 통합 경보 계산
         level = get_alarm_level(hospital_df, community_df, current_date)
