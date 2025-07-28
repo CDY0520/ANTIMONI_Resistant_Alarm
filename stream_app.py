@@ -76,17 +76,19 @@ def plot_graph(df, title_text, y_label, current_date):
 
     # 이상치 (경보) 시각화
     outlier_label_added = False
-    if '경보' in df.columns:
+    if '경보' in raw_df.columns:
         try:
-            outlier_rows = df[df['경보'].fillna(False)]
-            for _, row in outlier_rows.iterrows():
-                edge_color = 'black' if row['ds'] == current_date else 'gray'
-                ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
-                        markeredgecolor=edge_color,
-                        label='이상치' if not outlier_label_added else None)
-                outlier_label_added = True
+            # 경보 컬럼 boolean으로 강제 변환
+            raw_df['경보'] = raw_df['경보'].apply(lambda x: True if str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'] else False)
+            # Boolean mask로 필터링
+            alarm_df = raw_df[raw_df['경보']]
         except Exception as e:
-            st.warning(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
+            st.error(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
+            continue
+    else:
+        st.warning("⚠️ '경보' 컬럼 없음")
+        continue
+
 
     # 예측 시작선
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
