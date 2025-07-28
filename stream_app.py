@@ -240,9 +240,21 @@ if hospital_choice != "선택" and community_choice != "선택":
         # 왼쪽 화면 영역: 통합 메세지 및 경보 게이지 설명
         with left_panel:
             st.markdown("### 🛎️ 통합 경보")
-            draw_gauge(level, color)
+            draw_gauge(level, color)  # 게이지 차트 시각화 함수
             st.markdown(f"### 현재 레벨: {level}단계 ({color})")
-            st.image("통합경보_레벨설명표.png", use_column_width=True)  # 설명 이미지도 넣을 수 있음
+
+        # 경보 레벨 설명 이미지
+            st.image("통합경보_레벨설명표.png", use_column_width=True)
+
+        # 통합 경보 메시지 로드
+            message_file = "통합 경보 메세지.xlsx"
+            if os.path.exists(message_file):
+                message_df = pd.read_excel(message_file)
+                for _, row in message_df.iterrows():
+                    st.markdown(f"📝 **{row['제목']}**")
+                    st.markdown(f"<div style='font-size:14px; color:#444'>{row['내용']}</div>", unsafe_allow_html=True)
+            else:
+                st.warning("⚠️ 통합 경보 메세지 파일을 찾을 수 없습니다.")
 
         #  가운데 화면 영역: 내부 감염 그래프
         with mid_panel:
