@@ -123,6 +123,11 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
+    # 2023년만 시각화
+    df = df.copy()
+    df['ds'] = pd.to_datetime(df['ds'])
+    df = df[df['ds'].dt.year == 2023]
+    
     # 컬럼명 표준화 (yhat1 → yhat)
     if 'yhat1' not in df.columns and 'yhat' in df.columns:
         df['yhat1'] = df['yhat']
@@ -360,17 +365,8 @@ if community_choice != "선택":
 
 # 👉 왼쪽: 통합 경보 영역
 with left_panel:
-    st.markdown("### 🔔 통합 경보")
-
-    if hospital_df is not None and community_df is not None:
-        current_date = hospital_df['ds'].max() if 'ds' in hospital_df.columns else pd.to_datetime("2023-08-01")
-        level = get_alarm_level(hospital_df, community_df, current_date)
-        draw_gauge(level, level_color_map[level])
-    else:
-        st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
-
-    # 경보 레벨 설명 표
     st.markdown("### 경보 레벨 체계 (5단계)")
+
     level_rows = [
         ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
         ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
@@ -378,23 +374,35 @@ with left_panel:
         ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
         ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
     ]
+
+    # 어두운 테마에 맞춘 테이블 스타일
     st.markdown("""
     <style>
     .custom-table {
-        border-collapse: collapse;
         width: 100%;
+        border-collapse: collapse;
         font-size: 14px;
+        font-family: 'Noto Sans KR', sans-serif;
+        color: white;
+        background-color: transparent;
     }
     .custom-table td {
-        border: none;
         padding: 6px;
+        border: none;
     }
     </style>
-    <table class="custom-table">
-    """ + "".join([
-        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
-    ]) + "</table>", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
+    # 표 출력
+    st.markdown(
+        "<table class='custom-table'>" +
+        "".join([
+            f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
+        ]) +
+        "</table>",
+        unsafe_allow_html=True
+    )
+    
 # 👉 병원 예측 그래프 및 경보 내역
 with center_panel:
     st.markdown("### 병원 감염 이상치 예측")
