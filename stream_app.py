@@ -226,36 +226,56 @@ level_color_map = {
 }
 
 # 7. 게이지 차트 함수
-def draw_gauge(level, color_hex):
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=level,
-        domain={'x': [0, 1], 'y': [0, 1]},
-        title={
-            'text': "현재 경보 레벨",
-            'font': {'size': 16, 'color': '#2B3F73', 'family': 'Noto Sans KR'}
-        },
-        gauge={
-            'axis': {'range': [1, 5], 'tickmode': 'linear', 'dtick': 1, 'tickfont': {'size': 12}},
-            'bar': {'color': color_hex},
-            'steps': [
-                {'range': [1, 2], 'color': '#00cc96'},   # Green
-                {'range': [2, 3], 'color': '#636efa'},   # Blue
-                {'range': [3, 4], 'color': '#f4c430'},   # Yellow
-                {'range': [4, 5], 'color': '#ffa15a'},   # Orange
-            ],
-            'threshold': {
-                'line': {'color': color_hex, 'width': 4},
-                'thickness': 0.75,
-                'value': level
-            }
-        }
+def draw_gauge(level, color_hex=None):
+    # 값 체크
+    if level < 1 or level > 5:
+        st.error("경보 레벨은 1~5 사이여야 합니다.")
+        return
+
+    # 색상 설정 (사용자가 따로 color_hex를 넘기지 않아도 내부에서 결정)
+    level_colors = ['#00cc96', '#636efa', '#f4c430', '#ffa15a', '#ef553b']
+    level_labels = ['1', '2', '3', '4', '5']
+
+    # 반원 게이지 구성 (go.Pie)
+    fig = go.Figure()
+
+    fig.add_trace(go.Pie(
+        values=[20] * 5 + [100],  # 5개 구간 + 투명한 아래쪽
+        rotation=180,
+        hole=0.6,
+        direction='clockwise',
+        text=level_labels + [''],
+        textinfo='text',
+        textposition='inside',
+        marker_colors=level_colors + ['rgba(0,0,0,0)'],
+        hoverinfo='skip',
+        showlegend=False
     ))
 
+    # 바늘 좌표 계산
+    angle_deg = 180 - (level - 1) * 36 - 18  # 중앙 기준 각도
+    angle_rad = np.radians(angle_deg)
+    x = 0.5 + 0.4 * np.cos(angle_rad)
+    y = 0.5 + 0.4 * np.sin(angle_rad)
+
+    # 바늘 추가
+    fig.add_shape(type='line',
+        x0=0.5, y0=0.5, x1=x, y1=y,
+        line=dict(color='black', width=4)
+    )
+
+    # 중앙 숫자 표시
+    fig.add_annotation(
+        text=f"<b>{level}</b>", x=0.5, y=0.5,
+        font=dict(size=36, color='white', family='Noto Sans KR'),
+        showarrow=False
+    )
+
     fig.update_layout(
-        height=220,
+        height=300,
         margin=dict(t=30, b=0, l=10, r=10),
-        font=dict(family='Noto Sans KR', size=13)
+        paper_bgcolor='#0E1117',
+        plot_bgcolor='#0E1117'
     )
 
     st.plotly_chart(fig, use_container_width=True)
