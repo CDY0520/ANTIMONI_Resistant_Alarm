@@ -242,10 +242,10 @@ def draw_gauge(level, color_hex=None):
 
     # 반원 게이지 구성 (go.Pie)
     fig = go.Figure()
-
+    
     fig.add_trace(go.Pie(
-        values=[20] * 5 + [100],  # 5개 구간 + 투명한 아래쪽
-        rotation=180,
+        values=[20] * 5 + [100],
+        rotation=-90,  # ✅ 위쪽 시작
         hole=0.6,
         direction='clockwise',
         text=level_labels + [''],
@@ -269,10 +269,24 @@ def draw_gauge(level, color_hex=None):
         line=dict(color='white', width=4)
     )
 
-    # 중앙 숫자 표시
+    # 바늘 각도 조정: 180도 기준에서 시계방향 36도씩 이동
+    angle_deg = 180 - (level - 1) * 36 - 18
+    angle_rad = np.radians(angle_deg)
+
+    # 바늘 길이 짧게 (0.3), 시작점 0.5 → 중심에서 시작
+    x = 0.5 + 0.3 * np.cos(angle_rad)
+    y = 0.5 + 0.3 * np.sin(angle_rad)
+
+    fig.add_shape(
+        type='line',
+        x0=0.5, y0=0.5, x1=x, y1=y,
+        line=dict(color='white', width=4)
+    )
+
+    # 중앙 숫자 약간 아래로 이동 (y=0.44)
     fig.add_annotation(
         text=f"<b>{level}</b>",
-        x=0.5, y=0.5,
+        x=0.5, y=0.44,
         font=dict(size=36, color='white', family='Noto Sans KR'),
         showarrow=False
     )
