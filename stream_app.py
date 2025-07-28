@@ -392,18 +392,26 @@ with col1:
 
     # 경보 체계 설명표
     st.markdown("### 경보 레벨 체계 (5단계)")
-    level_info = {
-        "1단계": "병원 감염 및 지역사회 감염 모두 안정",
-        "2단계": "지역사회 감염 위험 존재",
-        "3단계": "병원 감염 이상치 1회",
-        "4단계": "병원 감염 이상치 1회 + 지역사회 감염 위험",
-        "5단계": "병원 감염 이상치 2개월 연속"
+    level_rows = [
+        ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
+        ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
+        ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
+        ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
+        ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
+    ]
+    st.markdown("""
+    <style>
+    .custom-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
     }
-    level_icons = {
-        "1단계": "🟢", "2단계": "🔵", "3단계": "🟠", "4단계": "🟠", "5단계": "🔴"
+    .custom-table td {
+        border: none;
+        padding: 6px;
     }
-    table_data = []
-    for level_name, desc in level_info.items():
-        table_data.append([level_icons[level_name], desc])
-    level_table = pd.DataFrame(table_data, columns=["", "설명"])
-    st.dataframe(level_table, use_container_width=True, hide_index=True)
+    </style>
+    <table class="custom-table">
+    """ + "".join([
+        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
+    ]) + "</table>", unsafe_allow_html=True)
