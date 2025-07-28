@@ -124,69 +124,59 @@ def plot_graph(df, title_text, y_label, current_date):
 # 4. 시각화 래퍼 함수
 # 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
-    current_date = pd.to_datetime('2023-08-01')  # 또는 df['ds'].max()
-    file_name = title.replace(" ", "").replace("이상치 예측", "")
-    y_label = "예측값"
-    
-    # 병원 or 지역사회에 따라 라벨 추정
-    if "표본감시" in title:
-        y_label = "표본감시 발생 건수"
-    elif "CRE" in title:
-        y_label = "CRE 발생 건수"
-    
-    plot_graph(df, title_text=title, y_label=y_label, current_date=current_date)
-    render_alarms([(title, df)], current_date=current_date)
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(df['ds'], df['y'], label='실제 예측값', marker='o', color='royalblue')
+    plt.plot(df['ds'], df['yhat1'], label='One-step 예측', linestyle='--', color='red')
+    plt.fill_between(df['ds'], df['yhat1_lower'], df['yhat1_upper'], color='red', alpha=0.2)
+
+    # 예측 시작선 표시
+    if '예측시작' in df.columns:
+        plt.axvline(pd.to_datetime(df['예측시작'].dropna().values[0]), linestyle='--', color='gray', label='예측 시작')
+
+    # 이상치 별표 표시 (★) - outlier_label_added 미리 정의
+    outlier_label_added = False
+    for i, row in df.iterrows():
+        if row.get('경보', False):
+            label = '이상치' if not outlier_label_added else ""
+            plt.plot(row['ds'], row['y'], marker='*', color='gold', markersize=12, label=label)
+            outlier_label_added = True
+
+    plt.legend(fontsize=9)
+    plt.title(title)
+    plt.xlabel("날짜")
+    plt.ylabel("예측값")
+    plt.grid(True)
+    st.pyplot(plt)
 
 # 5. 경보 탑지 함수
-def render_alarms(alarm_records, current_date):
-    st.markdown("### 경보 내역")
+def render_alarms(df, panel_title="경보 내역"):
+    st.markdown(f"### {panel_title}")
+    if df.empty:
+        st.info("📌 현재 경보가 없습니다.")
+        return
 
-    for name, raw_df in alarm_records:
+    # '예측상한' 소수점 둘째 자리로 포맷
+    df = df.copy()
+    df['예측상한'] = df['예측상한'].apply(lambda x: f"{x:.2f}")
 
-        if '경보' not in raw_df.columns:
-            st.warning("⚠️ '경보' 컬럼 없음")
-            continue
+    # HTML 테이블 가운데 정렬 및 스타일링
+    st.markdown("""
+    <style>
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .custom-table th, .custom-table td {
+        text-align: center;
+        padding: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-        try:
-            raw_df['경보'] = raw_df['경보'].apply(
-                lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False
-            )
-            alarm_df = raw_df[raw_df['경보']]
-        except Exception as e:
-            st.error(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
-            continue
-
-        current_alarm = alarm_df[alarm_df['ds'] == current_date]
-        past_alarms = alarm_df[alarm_df['ds'] < current_date]
-
-        if not current_alarm.empty:
-            row = current_alarm.iloc[0]
-            st.markdown(f"""
-            <div style='background-color:#fff4e5; padding:10px 14px; border-radius:6px;
-                        border-left: 5px solid #ff8800; font-size: 14px; margin-bottom:8px;'>
-              <div style='color:red; font-weight:bold; margin-bottom:6px'>
-                 현재 경보 발생 ({row['ds'].strftime('%Y-%m')})
-              </div>
-              <div style='color:black; margin-bottom:4px'> 
-                ▶ 실제값 <b>{row['y']:.0f}</b>이(가) 예측상한 <b>{row['yhat_upper']:.2f}</b> 초과
-              </div>
-              {"".join([f"<div style='color:black;'>▶ {line.strip()}</div>"
-                        for line in str(row['경보해석']).splitlines() if line.strip()])}
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"<span style='font-size:13px;color:gray'>📌 현재({current_date.strftime('%Y-%m')})에는 경보가 없습니다.</span>", unsafe_allow_html=True)
-
-        if not past_alarms.empty:
-            st.markdown("과거 경보 내역")
-            display_df = past_alarms[['ds', 'y', 'yhat_upper']].copy()
-            display_df.columns = ['날짜', '실제값', '예측상한']
-            display_df['날짜'] = display_df['날짜'].dt.strftime('%Y-%m')
-            display_df['실제값'] = display_df['실제값'].astype(int)
-            display_df['예측상한'] = display_df['예측상한'].round(2)
-            st.table(display_df.reset_index(drop=True))
-        else:
-            st.markdown("과거 경보 내역 없음")
+    st.markdown(df.to_html(index=False, classes='custom-table'), unsafe_allow_html=True)
 
 # 6. 경보 레벨 색상 매핑
 level_color_map = {
