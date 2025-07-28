@@ -365,8 +365,39 @@ if community_choice != "선택":
 
 # 👉 왼쪽: 통합 경보 영역
 with left_panel:
-    st.markdown("### 경보 레벨 체계 (5단계)")
+    st.markdown("### 🔔 통합 경보")
 
+    if hospital_df is not None and community_df is not None:
+        current_date = hospital_df['ds'].max()
+        level = get_alarm_level(hospital_df, community_df, current_date)
+
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=level,
+            title={'text': "경보 레벨", 'font': {'size': 20}},
+            gauge={
+                'axis': {'range': [1, 5], 'tickmode': 'array', 'tickvals': [1, 2, 3, 4, 5]},
+                'bar': {'color': "black", 'thickness': 0.3},
+                'steps': [
+                    {'range': [1, 2], 'color': "#00cc96"},  # green
+                    {'range': [2, 3], 'color': "#636efa"},  # blue
+                    {'range': [3, 4], 'color': "#f4c430"},  # yellow
+                    {'range': [4, 5], 'color': "#ffa15a"},  # orange
+                    {'range': [5, 5.1], 'color': "#ef553b"} # red
+                ],
+                'threshold': {
+                    'line': {'color': "black", 'width': 4},
+                    'thickness': 0.75,
+                    'value': level
+                }
+            }
+        ))
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
+
+    # 경보 레벨 설명 표
+    st.markdown("### 경보 레벨 체계 (5단계)")
     level_rows = [
         ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
         ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
@@ -374,34 +405,23 @@ with left_panel:
         ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
         ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
     ]
-
-    # 어두운 테마에 맞춘 테이블 스타일
     st.markdown("""
     <style>
     .custom-table {
-        width: 100%;
         border-collapse: collapse;
+        width: 100%;
         font-size: 14px;
-        font-family: 'Noto Sans KR', sans-serif;
-        color: white;
-        background-color: transparent;
     }
     .custom-table td {
-        padding: 6px;
         border: none;
+        padding: 6px;
     }
     </style>
-    """, unsafe_allow_html=True)
+    <table class="custom-table">
+    """ + "".join([
+        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
+    ]) + "</table>", unsafe_allow_html=True)
 
-    # 표 출력
-    st.markdown(
-        "<table class='custom-table'>" +
-        "".join([
-            f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
-        ]) +
-        "</table>",
-        unsafe_allow_html=True
-    )
     
 # 👉 병원 예측 그래프 표시
 with center_panel:
