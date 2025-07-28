@@ -325,6 +325,7 @@ with col2:
 
     # 감염 종류 선택
     hospital_options = list(hospital_file_map.keys())
+    hospital_choice = st.selectbox("", hospital_options, key="hospital_select")
     hospital_df = data_dict[hospital_choice]
     y_label_hospital = hospital_file_map[hospital_choice][2]
 
@@ -352,6 +353,7 @@ with col3:
 
     # 감염 종류 선택
     community_options = list(community_file_map.keys())
+    community_choice = st.selectbox("", community_options, key="community_select")
     community_df = data_dict[community_choice]
     y_label_community = community_file_map[community_choice][2]
 
