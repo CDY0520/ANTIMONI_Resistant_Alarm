@@ -230,19 +230,22 @@ def draw_gauge(level, color):
 left_panel, center_panel, right_panel = st.columns([1.1, 1.7, 1.7])
 
 with left_panel:
-    st.markdown("### 🛎️ 통합 경보")
-    # draw_gauge(level, color)  # 차트 함수
-    st.markdown("통합 게이지 차트 영역입니다.")
-    st.image("통합경보_레벨설명표.png", use_column_width=True)
+    st.markdown("###  통합 경보")
+    draw_gauge(level, color)  # 현재 통합 경보 단계에 따라 바늘 게이지 표시
+    st.markdown(f"### 현재 레벨: {level}단계 ({color})")
 
-    message_file = "통합 경보 메세지.xlsx"
-    if os.path.exists(message_file):
-        message_df = pd.read_excel(message_file)
-        for _, row in message_df.iterrows():
-            st.markdown(f"📝 **{row['제목']}**")
-            st.markdown(f"<div style='font-size:14px; color:#444'>{row['내용']}</div>", unsafe_allow_html=True)
+    # 경보 레벨 설명표 로드
+    level_table_file = "통합 경보 레벨 설명표.xlsx"
+    if os.path.exists(level_table_file):
+        try:
+            level_df = pd.read_excel(level_table_file)
+            level_df = level_df[['레벨', '명칭', '색상', '의미', '대응']]  # 원하는 컬럼 순서로 정리
+            st.markdown("#### 경보 레벨 체계")
+            st.dataframe(level_df, use_container_width=True, hide_index=True)
+        except Exception as e:
+            st.error(f"📛 경보 레벨 설명표 파일 로드 중 오류: {e}")
     else:
-        st.info("📄 통합 경보 메시지를 불러오는 중입니다...")
+        st.warning("⚠️ 경보 레벨 설명표 파일을 찾을 수 없습니다.")
 
 with center_panel:
     st.markdown("#### 병원 이상치 예측")
