@@ -257,10 +257,10 @@ left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
 # 👉 드롭다운 선택 (가운데/오른쪽)
 with center_panel:
-    hospital_choice = st.selectbox("🏥 병원 감염 선택", ["선택"] + list(hospital_file_map.keys()))
+    hospital_choice = st.selectbox("### 🏥 병원 감염 선택", ["선택"] + list(hospital_file_map.keys()))
 
 with right_panel:
-    community_choice = st.selectbox("🌐 지역사회 감염 선택", ["선택"] + list(community_file_map.keys()))
+    community_choice = st.selectbox("### 🌐 지역사회 감염 선택", ["선택"] + list(community_file_map.keys()))
 
 # 👉 병원 및 지역사회 데이터 로딩
 hospital_df = None
@@ -310,7 +310,6 @@ with left_panel:
             }
         ))
         st.plotly_chart(fig, use_container_width=True)
-        st.markdown(f"#### 현재 레벨: {level}단계")
     else:
         st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
 
