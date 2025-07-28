@@ -123,48 +123,28 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
-    import matplotlib.pyplot as plt
-    import numpy as np
-
     plt.figure(figsize=(10, 5))
     plt.plot(df['ds'], df['y'], label='실제 예측값', marker='o', color='royalblue')
-
-    # One-step 예측 존재할 경우
-    if 'yhat1' in df.columns:
-        plt.plot(df['ds'], df['yhat1'], label='One-step 예측', linestyle='--', color='red')
-
-        # 불확실성 구간도 존재할 경우에만 fill
-        if 'yhat1_lower' in df.columns and 'yhat1_upper' in df.columns:
-            df['yhat1_lower'] = pd.to_numeric(df['yhat1_lower'], errors='coerce')
-            df['yhat1_upper'] = pd.to_numeric(df['yhat1_upper'], errors='coerce')
-            df['yhat1_lower'].interpolate(method='linear', inplace=True)
-            df['yhat1_upper'].interpolate(method='linear', inplace=True)
-
-            plt.fill_between(df['ds'], df['yhat1_lower'], df['yhat1_upper'],
-                             where=~(df['yhat1_lower'].isna() | df['yhat1_upper'].isna()),
-                             color='red', alpha=0.2)
+    plt.plot(df['ds'], df['yhat1'], label='One-step 예측', linestyle='--', color='red')
+    plt.fill_between(df['ds'], df['yhat1_lower'], df['yhat1_upper'], color='red', alpha=0.2)
 
     # 예측 시작선 표시
     if '예측시작' in df.columns:
-        pred_start_dates = df['예측시작'].dropna().values
-        if len(pred_start_dates) > 0:
-            plt.axvline(pd.to_datetime(pred_start_dates[0]), linestyle='--', color='gray', label='예측 시작')
+        plt.axvline(pd.to_datetime(df['예측시작'].dropna().values[0]), linestyle='--', color='gray', label='예측 시작')
 
-    # 이상치 별표 표시
+    # 이상치 별표 표시 (★) - outlier_label_added 미리 정의
     outlier_label_added = False
-    if '경보' in df.columns:
-        for _, row in df.iterrows():
-            if row.get('경보', False):
-                label = '이상치' if not outlier_label_added else ""
-                plt.plot(row['ds'], row['y'], marker='*', color='gold', markersize=12, label=label)
-                outlier_label_added = True
+    for i, row in df.iterrows():
+        if row.get('경보', False):
+            label = '이상치' if not outlier_label_added else ""
+            plt.plot(row['ds'], row['y'], marker='*', color='gold', markersize=12, label=label)
+            outlier_label_added = True
 
     plt.legend(fontsize=9)
     plt.title(title)
     plt.xlabel("날짜")
     plt.ylabel("예측값")
     plt.grid(True)
-    plt.tight_layout()
     st.pyplot(plt)
 
 # 5. 경보 탑지 함수
