@@ -53,7 +53,6 @@ community_file_map = {
 
 # 3. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
-level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
 
 # 4. 시각화 함수
 def plot_graph(df, title_text, y_label, current_date):
@@ -313,50 +312,16 @@ def get_integrated_alert_level(hospital_df, community_df, current_date):
 
 
 # 10. 3분할 레이아웃
-# 3분할 레이아웃 구성
 col1, col2, col3 = st.columns([1.2, 2.5, 2.5])
 
 # ------------------------
-# ✅ col1: 통합 경보 영역
-# ------------------------
-with col1:
-    st.markdown("### 🔔 통합 경보")
-    st.markdown("#### ")
-
-    # 통합 경보 등급 계산
-    level, color_hex = get_integrated_alert_level(hospital_df, community_df)
-
-    # 바늘형 게이지 차트 시각화
-    draw_gauge(level, color_hex)
-
-    # 경보 체계 설명표
-    st.markdown("### 경보 레벨 체계 (5단계)")
-    level_info = {
-        "1단계": "병원 감염 및 지역사회 감염 모두 안정",
-        "2단계": "지역사회 감염 위험 존재",
-        "3단계": "병원 감염 이상치 1회",
-        "4단계": "병원 감염 이상치 1회 + 지역사회 감염 위험",
-        "5단계": "병원 감염 이상치 2개월 연속"
-    }
-    level_colors = {
-        "1단계": "green", "2단계": "blue", "3단계": "orange", "4단계": "orange", "5단계": "red"
-    }
-    level_icons = {
-        "1단계": "🟢", "2단계": "🔵", "3단계": "🟠", "4단계": "🟠", "5단계": "🔴"
-    }
-    table_data = []
-    for level, desc in level_info.items():
-        table_data.append([level_icons[level], desc])
-    level_table = pd.DataFrame(table_data, columns=["", "설명"])
-    st.dataframe(level_table, use_container_width=True, hide_index=True)
-
-# ------------------------
-# ✅ col2: 병원 감염 영역
+# ✅ col2: 병원 감염 영역 (먼저 hospital_df 정의)
 # ------------------------
 with col2:
-    st.markdown("### 🏥 병원 감염 선택택")
+    st.markdown("### 🏥 병원 감염 선택")
 
     # 감염 종류 선택
+    hospital_options = list(hospital_file_map.keys())
     hospital_choice = st.selectbox("병원 감염을 선택하세요", hospital_options, key="hospital_select")
     hospital_df = data_dict[hospital_choice]
 
@@ -372,12 +337,13 @@ with col2:
     display_alert_table(hospital_df)
 
 # ------------------------
-# ✅ col3: 지역사회 감염 영역
+# ✅ col3: 지역사회 감염 영역 (community_df 정의)
 # ------------------------
 with col3:
     st.markdown("### 🌐 지역사회 감염 선택")
 
     # 감염 종류 선택
+    community_options = list(community_file_map.keys())
     community_choice = st.selectbox("지역사회 감염을 선택하세요", community_options, key="community_select")
     community_df = data_dict[community_choice]
 
@@ -392,5 +358,33 @@ with col3:
     st.markdown("### 과거 경보 내역")
     display_alert_table(community_df)
 
+# ------------------------
+# ✅ col1: 통합 경보 영역 (hospital_df & community_df 정의 이후로 이동)
+# ------------------------
+with col1:
+    st.markdown("### 🔔 통합 경보")
+    st.markdown("#### ")
 
+    level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
+
+    # 바늘형 게이지 차트 시각화
+    draw_gauge(level, color_hex)
+
+    # 경보 체계 설명표
+    st.markdown("### 경보 레벨 체계 (5단계)")
+    level_info = {
+        "1단계": "병원 감염 및 지역사회 감염 모두 안정",
+        "2단계": "지역사회 감염 위험 존재",
+        "3단계": "병원 감염 이상치 1회",
+        "4단계": "병원 감염 이상치 1회 + 지역사회 감염 위험",
+        "5단계": "병원 감염 이상치 2개월 연속"
+    }
+    level_icons = {
+        "1단계": "🟢", "2단계": "🔵", "3단계": "🟠", "4단계": "🟠", "5단계": "🔴"
+    }
+    table_data = []
+    for level_name, desc in level_info.items():
+        table_data.append([level_icons[level_name], desc])
+    level_table = pd.DataFrame(table_data, columns=["", "설명"])
+    st.dataframe(level_table, use_container_width=True, hide_index=True)
 
