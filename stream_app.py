@@ -299,7 +299,7 @@ with col2:
     hospital_df = data_dict[hospital_choice]
 
     # 병원 감염 그래프
-    visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
+    plot_graph(hospital_df, title="병원 감염 이상치 예측")
 
     # 현재 경보 메시지
     latest_hosp = hospital_df[hospital_df['ds'] == hospital_df['ds'].max()]
@@ -321,7 +321,7 @@ with col3:
     community_df = data_dict[community_choice]
 
     # 지역사회 감염 그래프
-    visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
+   plot_graph(community_df, title="지역사회 감염 이상치 예측")
 
     # 현재 경보 메시지
     latest_comm = community_df[community_df['ds'] == community_df['ds'].max()]
