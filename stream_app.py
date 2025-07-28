@@ -160,7 +160,7 @@ def render_alarms(alarm_records, current_date):
             st.markdown(f"<span style='font-size:13px;color:gray'>📍 현재({current_date.strftime('%Y-%m')})에는 경보가 없습니다.</span>", unsafe_allow_html=True)
 
         if not past_alarms.empty:
-            st.markdown("📜 과거 경보 내역")
+            st.markdown("과거 경보 내역")
             display_df = past_alarms[['ds', 'y', 'yhat_upper']].copy()
             display_df.columns = ['날짜', '실제값', '예측상한']
             display_df['날짜'] = display_df['날짜'].dt.strftime('%Y-%m')
@@ -288,7 +288,7 @@ with left_panel:
         st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
 
     # 경보 레벨 설명 표
-    st.markdown("### 📋 경보 레벨 체계 (5단계)")
+    st.markdown("###경보 레벨 체계 (5단계)")
     level_rows = [
         ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
         ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
