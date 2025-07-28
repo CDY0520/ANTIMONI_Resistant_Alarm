@@ -28,8 +28,6 @@ st.set_page_config(layout="wide")
 st.title("📈 이상치 탐지 모니터링")
 st.write("예측 결과 및 이상치 경보를 확인하세요.")
 
-st.write("📌 현재 컬럼:", df.columns.tolist())
-
 # 드롭다운 메뉴
 col1, col2 = st.columns(2)
 with col1:
@@ -89,6 +87,8 @@ def plot_graph(df, title_text, y_label, current_date):
                 outlier_label_added = True
         except Exception as e:
             st.warning(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
+
+    st.write("📌 현재 컬럼:", df.columns.tolist())
 
 
     # 예측 시작선
