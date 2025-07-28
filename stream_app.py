@@ -75,14 +75,15 @@ for name, (filename, _, _) in community_file_map.items():
         
 # 4. 시각화 함수
 def plot_graph(df, title_text, y_label, current_date):
-    import matplotlib.patches as mpatches
-
     df = df[df['ds'].dt.year == 2023]
     past_mask = df['ds'] < current_date
     current_mask = df['ds'] == current_date
 
     fig, ax = plt.subplots(figsize=(7, 3))
-    fig.patch.set_facecolor('#FFF7F0')
+    
+    # 배경색 적용
+    fig.patch.set_facecolor("#fef9f5")
+    ax.set_facecolor("#fef9f5")
 
     # 신뢰구간
     ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'],
@@ -160,7 +161,7 @@ def render_alert_message(latest_df, current_date, dataset_label="병원 감염")
         interpretation = row.get('경보해석', '')
 
         message_md = f"""
-        <div style="background-color:#223D77; padding:10px; border-radius:8px;">
+        <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
             <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] {dataset_label} 이상치 발생</span><br>
             <span style="color:black;">▶ 현재값 ({current_val})이 예측 상한값 ({upper_val})을 초과하였습니다.</span><br>
             <span style="color:black;">▶ {interpretation}</span>
