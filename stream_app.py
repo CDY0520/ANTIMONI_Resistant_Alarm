@@ -156,10 +156,17 @@ def render_alert_message(latest_df, current_date, dataset_label="병원 감염")
     row = latest_df.iloc[0]
     current_date_str = pd.to_datetime(current_date).strftime("%Y-%m")
 
-    if row['경보']:  # 이상치 발생한 경우
-        current_val = int(row['y'])
-        upper_val = round(row['yhat_upper'], 2)
-        interpretation = row.get('경보해석', '')
+    # 경보 여부 확인 (문자열일 가능성 포함하여 처리)
+    is_alert = str(row.get('경보', '')).strip().upper() in ["TRUE", "1", "1.0", "T"]
+
+    if is_alert:
+        try:
+            current_val = int(row['y']) if pd.notna(row['y']) else "값 없음"
+            upper_val = round(float(row['yhat_upper']), 2) if pd.notna(row['yhat_upper']) else "값 없음"
+            interpretation = row.get('경보해석', '')
+        except Exception as e:
+            st.error(f"⚠️ 경보 메시지 처리 오류: {e}")
+            return
 
         message_md = f"""
         <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
@@ -170,7 +177,7 @@ def render_alert_message(latest_df, current_date, dataset_label="병원 감염")
         """
         st.markdown(message_md, unsafe_allow_html=True)
 
-    else:  # 이상치 없음
+    else:
         message_md = f"""
         <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
             <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span>
