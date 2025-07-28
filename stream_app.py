@@ -75,23 +75,23 @@ def plot_graph(df, title_text, y_label, current_date):
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
     # 이상치 (경보) 시각화
+    # 이상치 시각화
     outlier_label_added = False
-    for name, raw_df in alarm_records:
-        st.markdown(f"#### 📌 {name}")
-    
-        if '경보' not in raw_df.columns:
-            st.warning("⚠️ '경보' 컬럼 없음")
-            continue
-
+    if '경보' in df.columns:
         try:
-            # 경보 컬럼 boolean으로 변환
-            raw_df['경보'] = raw_df['경보'].apply(
-                lambda x: True if str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'] else False
+            df['경보'] = df['경보'].apply(
+                lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False
             )
-            alarm_df = raw_df[raw_df['경보']]
+            outlier_rows = df[df['경보']]
+            for _, row in outlier_rows.iterrows():
+                edge_color = 'black' if row['ds'] == current_date else 'gray'
+                ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
+                        markeredgecolor=edge_color,
+                        label='이상치' if not outlier_label_added else None)
+                outlier_label_added = True
         except Exception as e:
-            st.error(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
-            continue
+            st.error(f"⚠️ 이상치 시각화 오류: {e}")
+
 
 
 
