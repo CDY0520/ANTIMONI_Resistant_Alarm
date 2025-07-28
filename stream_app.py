@@ -62,7 +62,7 @@ for name, (filename, _, _) in hospital_file_map.items():
         df['ds'] = pd.to_datetime(df['ds'])
         data_dict[name] = df
     else:
-        st.warning(f"❌ 병원 파일 누락: {filename}")
+        pass
 
 for name, (filename, _, _) in community_file_map.items():
     filepath = filename
@@ -71,7 +71,7 @@ for name, (filename, _, _) in community_file_map.items():
         df['ds'] = pd.to_datetime(df['ds'])
         data_dict[name] = df
     else:
-        st.warning(f"❌ 지역사회 파일 누락: {filename}")
+        pass
         
 # 4. 시각화 함수
 def plot_graph(df, title_text, y_label, current_date):
