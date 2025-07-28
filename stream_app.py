@@ -56,7 +56,7 @@ current_date = pd.to_datetime('2023-08-01')
 data_dict = {}
 
 for name, (filename, _, _) in hospital_file_map.items():
-    filepath = os.path.join("data", filename)
+    filepath = filename
     if os.path.exists(filepath):
         df = pd.read_excel(filepath)
         df['ds'] = pd.to_datetime(df['ds'])
@@ -65,7 +65,7 @@ for name, (filename, _, _) in hospital_file_map.items():
         st.warning(f"❌ 병원 파일 누락: {filename}")
 
 for name, (filename, _, _) in community_file_map.items():
-    filepath = os.path.join("data", filename)
+    filepath = filename
     if os.path.exists(filepath):
         df = pd.read_excel(filepath)
         df['ds'] = pd.to_datetime(df['ds'])
