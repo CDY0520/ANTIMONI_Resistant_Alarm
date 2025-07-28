@@ -173,37 +173,96 @@ def render_alarms(alarm_records, current_date):
         else:
             st.markdown("과거 경보 내역 없음")
 
+# 필요한 라이브러리 추가
+import plotly.graph_objects as go
+
+# 경보 레벨 판단 함수
+def get_alarm_level(internal_df, external_df, current_date):
+    internal_df['경보'] = internal_df['경보'].apply(lambda x: str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'])
+    external_df['경보'] = external_df['경보'].apply(lambda x: str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'])
+
+    internal_alarm_count = internal_df[(internal_df['ds'] == current_date) & (internal_df['경보'])].shape[0]
+    external_alarm_count = external_df[(external_df['ds'] == current_date) & (external_df['경보'])].shape[0]
+
+    internal_prev = internal_df[(internal_df['ds'] == current_date - pd.DateOffset(months=1)) & (internal_df['경보'])].shape[0]
+
+    if internal_alarm_count and internal_prev:
+        return 5, "Red"
+    elif internal_alarm_count and external_alarm_count:
+        return 4, "Orange"
+    elif internal_alarm_count:
+        return 3, "Yellow"
+    elif external_alarm_count:
+        return 2, "Blue"
+    else:
+        return 1, "Green"
+
+# 게이지 차트 함수
+def draw_gauge(level, color):
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=level,
+        title={'text': "📍 통합 경보 레벨", 'font': {'size': 20}},
+        gauge={
+            'axis': {'range': [1, 5]},
+            'bar': {'color': color},
+            'steps': [
+                {'range': [1, 2], 'color': '#00C49F'},
+                {'range': [2, 3], 'color': '#5E8CFF'},
+                {'range': [3, 4], 'color': '#FFD93D'},
+                {'range': [4, 5], 'color': '#FFA447'},
+                {'range': [5, 5.1], 'color': '#FF6B6B'}
+            ]
+        }
+    ))
+    st.plotly_chart(fig, use_container_width=True)
+
+
+
+#  화면 영역 설정
+left_panel, mid_panel, right_panel = st.columns([1.4, 2.8, 2.8])
+
+#  데이터 불러오고 통합 경보 판단 후 좌측 게이지 표시
+if hospital_choice != "선택" and community_choice != "선택":
+    h_file, _, _ = hospital_file_map[hospital_choice]
+    c_file, _, _ = community_file_map[community_choice]
+
+    if os.path.exists(h_file) and os.path.exists(c_file):
+        h_df = pd.read_excel(h_file)
+        c_df = pd.read_excel(c_file)
+        h_df.columns = h_df.columns.str.strip()
+        c_df.columns = c_df.columns.str.strip()
+        h_df['ds'] = pd.to_datetime(h_df['ds'])
+        c_df['ds'] = pd.to_datetime(c_df['ds'])
+
+        level, color = get_alarm_level(h_df, c_df, current_date)
+        
+        # 왼쪽 화면 영역: 통합 메세지 및 경보 게이지 설명
+        with left_panel:
+            st.markdown("### 🛎️ 통합 경보")
+            draw_gauge(level, color)
+            st.markdown(f"### 현재 레벨: {level}단계 ({color})")
+            st.image("통합경보_레벨설명표.png", use_column_width=True)  # 설명 이미지도 넣을 수 있음
+
+        #  가운데 화면 영역: 내부 감염 그래프
+        with mid_panel:
+            if os.path.exists(h_file):
+                df = h_df[(h_df['ds'] >= '2023-01-01') & (h_df['ds'] <= '2023-12-31')].copy()
+                st.subheader(f" {hospital_choice}")
+                plot_graph(df, hospital_file_map[hospital_choice][1], hospital_file_map[hospital_choice][2], current_date)
+                render_alarms([(hospital_choice, h_df)], current_date)
+
+        # 오른쪽 화면 영역: 외부 감염 그래프
+        with right_panel:
+            if os.path.exists(c_file):
+                df = c_df[(c_df['ds'] >= '2023-01-01') & (c_df['ds'] <= '2023-12-31')].copy()
+                st.subheader(f" {community_choice}")
+                plot_graph(df, community_file_map[community_choice][1], community_file_map[community_choice][2], current_date)
+                render_alarms([(community_choice, c_df)], current_date)
+
 # 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
 left_col, right_col = st.columns(2)
 
-# 병원 감염 (왼쪽)
-with left_col:
-    if hospital_choice != "선택":
-        file, title, ylabel = hospital_file_map[hospital_choice]
-        if os.path.exists(file):
-            raw_df = pd.read_excel(file)
-            raw_df.columns = raw_df.columns.str.strip()
-            raw_df['ds'] = pd.to_datetime(raw_df['ds'])
-            df = raw_df[(raw_df['ds'] >= '2023-01-01') & (raw_df['ds'] <= '2023-12-31')].copy()
-            st.subheader(f" {hospital_choice}")
-            plot_graph(df, title, ylabel, current_date)
-            render_alarms([(hospital_choice, raw_df)], current_date)
-        else:
-            st.warning(f"⚠️ [{hospital_choice}] 데이터 파일이 없습니다.")
 
-# 지역사회 감염 (오른쪽)
-with right_col:
-    if community_choice != "선택":
-        file, title, ylabel = community_file_map.get(community_choice, (None, None, None))
-        if file and os.path.exists(file):
-            raw_df = pd.read_excel(file)
-            raw_df.columns = raw_df.columns.str.strip()
-            raw_df['ds'] = pd.to_datetime(raw_df['ds'])
-            df = raw_df[(raw_df['ds'] >= '2023-01-01') & (raw_df['ds'] <= '2023-12-31')].copy()
-            st.subheader(f" {community_choice}")
-            plot_graph(df, title, ylabel, current_date)
-            render_alarms([(community_choice, raw_df)], current_date)
-        else:
-            st.warning(f"⚠️ [{community_choice}] 데이터 파일이 없습니다.")
 
