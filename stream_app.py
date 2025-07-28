@@ -194,44 +194,33 @@ def render_alarms(df, panel_title="경보 내역"):
 
     df = df.copy()
 
-    # 날짜 및 수치 포맷
-    if '날짜' in df.columns:
-        df['날짜'] = pd.to_datetime(df['날짜']).dt.strftime('%Y-%m-%d')
+    # 필요한 컬럼만 추출 & 포맷
+    df['날짜'] = pd.to_datetime(df['ds']).dt.strftime('%Y-%m-%d')
+    df['실제값'] = df['y'].apply(lambda x: f"{x:.0f}")
+    df['예측상한'] = df['yhat_upper'].apply(lambda x: f"{x:.2f}")
 
-    for col in ['예측값', '예측하한', '예측상한', '실제값']:
-        if col in df.columns:
-            df[col] = df[col].apply(lambda x: f"{x:.2f}" if pd.notnull(x) else "")
+    df_display = df[['날짜', '실제값', '예측상한']]
 
-    # 컬럼 순서 명시 (원하는 컬럼으로 조정)
-    expected_cols = ['날짜', '예측값', '예측하한', '예측상한', '실제값', '경보해석']
-    df = df[[col for col in expected_cols if col in df.columns]]
-
-    # 커스텀 테이블 스타일
+    # 스타일링 및 HTML 출력
     st.markdown("""
     <style>
     .custom-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 13px;
+        font-size: 14px;
         font-family: 'Noto Sans KR', sans-serif;
-        background-color: #F9FAFB;
-        border: 1px solid #DDD;
+        background-color: white;
+        color: black;
     }
-    .custom-table th {
-        background-color: #2B3F73;
-        color: white;
-        padding: 6px;
-        border: 1px solid #DDD;
-    }
-    .custom-table td {
+    .custom-table th, .custom-table td {
         text-align: center;
         padding: 6px;
-        border: 1px solid #DDD;
+        border: 1px solid #ddd;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown(df.to_html(index=False, classes='custom-table'), unsafe_allow_html=True)
+    st.markdown(df_display.to_html(index=False, classes='custom-table'), unsafe_allow_html=True)
 
 # 6. 경보 레벨 색상 매핑
 level_color_map = {
@@ -397,7 +386,8 @@ with left_panel:
         st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
 
     # 경보 레벨 설명 표
-    st.markdown("### 경보 레벨 체계 (5단계)")
+   st.markdown("### 경보 레벨 체계 (5단계)")
+
     level_rows = [
         ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
         ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
@@ -405,24 +395,33 @@ with left_panel:
         ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
         ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
     ]
+
     st.markdown("""
     <style>
-    .custom-table {
-        border-collapse: collapse;
+    .custom-alert-table {
         width: 100%;
+        border-collapse: collapse;
         font-size: 14px;
+        font-family: 'Noto Sans KR', sans-serif;
+        background-color: transparent;
+        color: white;
     }
-    .custom-table td {
-        border: none;
+    .custom-alert-table td {
         padding: 6px;
+        border: none;
     }
     </style>
-    <table class="custom-table">
-    """ + "".join([
-        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
-    ]) + "</table>", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-    
+    st.markdown(
+        "<table class='custom-alert-table'>" +
+        "".join([
+            f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
+        ]) +
+        "</table>",
+        unsafe_allow_html=True
+    )
+
 # 👉 병원 예측 그래프 표시
 with center_panel:
     st.markdown("### 병원 감염 이상치 예측")
