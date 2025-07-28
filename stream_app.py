@@ -241,21 +241,6 @@ left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 with left_panel:
     st.markdown("### 🔔 통합 경보")
 
-    # 병원/지역사회 감염 선택 박스를 수평으로 배치
-    col1, col2 = st.columns([1, 1])
-
-    with col1:
-        st.markdown("#### 🏥 병원 감염")
-        hospital_choice = st.selectbox(
-            "병원 감염 선택", list(hospital_file_map.keys()), label_visibility="collapsed"
-        )
-
-    with col2:
-        st.markdown("#### 🌐 지역사회 감염")
-        community_choice = st.selectbox(
-            "지역사회 감염 선택", list(community_file_map.keys()), label_visibility="collapsed"
-        )
-
     # 데이터 로드
     hospital_df = None
     community_df = None
@@ -288,11 +273,11 @@ with left_panel:
     # 경보 레벨 설명 표 (코드 구현 버전)
     st.markdown("### 📋 경보 레벨 체계 (5단계)")
     level_rows = [
-        ("1단계", "안정", "🟢 Green", "병원 감염 및 지역사회 감염 모두 안정"),
-        ("2단계", "관찰", "🔵 Blue", "지역사회 감염 위험 존재"),
-        ("3단계", "주의(경미)", "🟡 Yellow", "병원 감염 이상치 1회"),
-        ("4단계", "주의(강화)", "🟠 Orange", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
-        ("5단계", "경보", "🔴 Red", "병원 감염 이상치 2개월 연속")
+        ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
+        ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
+        ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
+        ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
+        ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
     ]
     st.markdown("""
     <style>
@@ -311,6 +296,9 @@ with left_panel:
         f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
     ]) + "</table>", unsafe_allow_html=True)
 
+# 병원/지역사회 감염 선택 박스를 수평으로 배치
+    col1, col2 = st.columns([1, 1])
+
 # 가운데: 병원 감염 예측 그래프
 with center_panel:
     st.markdown("### 🏥 병원 이상치 예측")
@@ -318,6 +306,12 @@ with center_panel:
         visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
     else:
         st.info("병원 감염 데이터를 선택하세요.")
+        
+    with col1:
+        st.markdown("#### 🏥 병원 감염")
+        hospital_choice = st.selectbox(
+            "병원 감염 선택", list(hospital_file_map.keys()), label_visibility="collapsed"
+        )
 
 # 오른쪽: 지역사회 감염 예측 그래프
 with right_panel:
@@ -326,6 +320,12 @@ with right_panel:
         visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
     else:
         st.info("지역사회 감염 데이터를 선택하세요.")
+    
+    with col2:
+        st.markdown("#### 🌐 지역사회 감염")
+        community_choice = st.selectbox(
+            "지역사회 감염 선택", list(community_file_map.keys()), label_visibility="collapsed"
+        )
 
 # 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
