@@ -74,7 +74,7 @@ def plot_graph(df, title_text, y_label, current_date):
             marker='o', linestyle='--', color='red',
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
-    # ✅ 이상치 처리
+    # 이상치 처리
     outlier_label_added = False
     if '경보' in df.columns:
         df['경보'] = df['경보'].fillna(False)
@@ -170,6 +170,7 @@ with left_col:
         file, title, ylabel = hospital_file_map[hospital_choice]
         if os.path.exists(file):
             raw_df = pd.read_excel(file)
+            raw_df.columns = raw_df.columns.str.strip()
             raw_df['ds'] = pd.to_datetime(raw_df['ds'])
             df = raw_df[(raw_df['ds'] >= '2023-01-01') & (raw_df['ds'] <= '2023-12-31')].copy()
             st.subheader(f" {hospital_choice}")
@@ -184,6 +185,7 @@ with right_col:
         file, title, ylabel = community_file_map.get(community_choice, (None, None, None))
         if file and os.path.exists(file):
             raw_df = pd.read_excel(file)
+            raw_df.columns = raw_df.columns.str.strip()
             raw_df['ds'] = pd.to_datetime(raw_df['ds'])
             df = raw_df[(raw_df['ds'] >= '2023-01-01') & (raw_df['ds'] <= '2023-12-31')].copy()
             st.subheader(f" {community_choice}")
@@ -191,3 +193,4 @@ with right_col:
             render_alarms([(community_choice, raw_df)], current_date)
         else:
             st.warning(f"⚠️ [{community_choice}] 데이터 파일이 없습니다.")
+
