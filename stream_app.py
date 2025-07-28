@@ -195,18 +195,18 @@ def display_alert_table(df):
         'y': '현재값',
         'yhat_upper': '예측 상한값'
     })
+
+    alert_df['현재값'] = alert_df['현재값'].astype(int)
     alert_df['예측 상한값'] = alert_df['예측 상한값'].round(2)
 
     if alert_df.empty:
         st.info("📭 과거 경보 내역이 없습니다.")
     else:
-        # 가운데 정렬 CSS
-        styled_table = alert_df.style.set_properties(**{
-            'text-align': 'center'
-        }).set_table_styles([dict(selector='th', props=[('text-align', 'center')])])
+        # 컬럼명만 가운데 정렬
+        styled_table = alert_df.style.set_table_styles([
+            {'selector': 'th', 'props': [('text-align', 'center')]}
+        ])
         st.dataframe(styled_table, use_container_width=True, hide_index=True)
-
-
 
 # 7. 경보 레벨 색상 매핑
 level_color_map = {
