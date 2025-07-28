@@ -256,9 +256,11 @@ left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
 # 👉 드롭다운 선택 (가운데/오른쪽)
 with center_panel:
+    st.markdown("###  병원 감염 선택")
     hospital_choice = st.selectbox(["선택"] + list(hospital_file_map.keys()))
 
 with right_panel:
+    st.markdown("###  지역사회 감염 선택")
     community_choice = st.selectbox(["선택"] + list(community_file_map.keys()))
 
 # 👉 병원 및 지역사회 데이터 로딩
