@@ -201,36 +201,39 @@ def draw_gauge(level, color):
     fig.update_layout(height=220, margin=dict(t=30, b=0, l=10, r=10))
     st.plotly_chart(fig, use_container_width=True)
 
-# 통합 경보 레벨 계산 함수
-def draw_gauge(level, color_code):
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=level,
-        number={'suffix': "단계", 'font': {'size': 24}},
-        domain={'x': [0, 1], 'y': [0, 1]},
-        gauge={
-            'axis': {'range': [1, 5], 'tickmode': 'array', 'tickvals': [1, 2, 3, 4, 5]},
-            'bar': {'color': color_code, 'thickness': 0.3},
-            'steps': [
-                {'range': [1, 2], 'color': '#4CAF50'},
-                {'range': [2, 3], 'color': '#2196F3'},
-                {'range': [3, 4], 'color': '#FFC107'},
-                {'range': [4, 5], 'color': '#FF5722'},
-                {'range': [5, 5.01], 'color': '#F44336'}
-            ],
-            'threshold': {
-                'line': {'color': "black", 'width': 4},
-                'thickness': 0.75,
-                'value': level
-            }
-        }
-    ))
+# 경보 레벨 판단 함수
+def get_alarm_level(hospital_df, community_df, current_date):
+    # 현재 날짜 기준으로 가장 최근 월 선택
+    current_month = pd.to_datetime(current_date).strftime("%Y-%m")
 
-    fig.update_layout(
-        margin=dict(t=20, b=0, l=0, r=0),
-        height=200
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    # 병원 경보 조건
+    hospital_df["ds"] = pd.to_datetime(hospital_df["ds"])
+    hospital_df["월"] = hospital_df["ds"].dt.strftime("%Y-%m")
+    hosp_alarm = hospital_df[hospital_df["월"] == current_month]["경보"].values
+
+    # 지역사회 경보 조건
+    community_df["ds"] = pd.to_datetime(community_df["ds"])
+    community_df["월"] = community_df["ds"].dt.strftime("%Y-%m")
+    comm_alarm = community_df[community_df["월"] == current_month]["경보"].values
+
+    hosp_alarm_bool = hosp_alarm[0] if len(hosp_alarm) > 0 else False
+    comm_alarm_bool = comm_alarm[0] if len(comm_alarm) > 0 else False
+
+    # 병원 2개월 연속 이상치 확인
+    recent_hosp = hospital_df.sort_values("ds", ascending=False).head(2)
+    two_month_alarm = (recent_hosp["경보"] == True).sum() >= 2
+
+    if two_month_alarm:
+        return 5
+    elif hosp_alarm_bool and comm_alarm_bool:
+        return 4
+    elif hosp_alarm_bool:
+        return 3
+    elif comm_alarm_bool:
+        return 2
+    else:
+        return 1
+
 
 # 왼쪽, 가운데, 오른쪽 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
@@ -280,7 +283,7 @@ with left_panel:
         st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
 
     # 경보 레벨 설명 표 (코드 구현 버전)
-    st.markdown("### 📋 경보 레벨 체계 (5단계)")
+    st.markdown("### 경보 레벨 체계 (5단계)")
     level_rows = [
         ("1단계", "안정", "🟢 Green", "병원 감염 및 지역사회 감염 모두 안정"),
         ("2단계", "관찰", "🔵 Blue", "지역사회 감염 위험 존재"),
