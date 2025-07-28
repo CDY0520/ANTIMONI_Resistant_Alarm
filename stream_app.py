@@ -117,6 +117,20 @@ def plot_graph(df, title_text, y_label, current_date):
 
     st.pyplot(fig)
 
+# 시각화 래퍼 함수
+def visualize_alert_graph(df, title="이상치 예측"):
+    current_date = pd.to_datetime('2023-08-01')  # 또는 df['ds'].max()
+    file_name = title.replace(" ", "").replace("이상치 예측", "")
+    y_label = "예측값"
+    
+    # 병원 or 지역사회에 따라 라벨 추정
+    if "표본감시" in title:
+        y_label = "표본감시 발생 건수"
+    elif "CRE" in title:
+        y_label = "CRE 발생 건수"
+    
+    plot_graph(df, title_text=title, y_label=y_label, current_date=current_date)
+    render_alarms([(title, df)], current_date=current_date)
 
 # 4. 경보 탑지 함수
 def render_alarms(alarm_records, current_date):
