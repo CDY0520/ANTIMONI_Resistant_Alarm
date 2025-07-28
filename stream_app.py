@@ -171,7 +171,7 @@ def render_alert_message(latest_df, current_date, dataset_label="병원 감염")
 
     else:  # 이상치 없음
         message_md = f"""
-        <div style="background-color:#223D77; padding:10px; border-radius:8px;">
+        <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
             <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span>
         </div>
         """
