@@ -117,7 +117,7 @@ def plot_graph(df, title_text, y_label, current_date):
     ordered_labels = [lbl for lbl in order if lbl in label_handle_map]
 
     ax.legend(ordered_handles, ordered_labels,
-              fontsize=2, markerscale=0.6, loc='upper left', frameon=False, prop=fontprop)
+              fontsize=1, markerscale=0.6, loc='upper left', frameon=False, prop=fontprop)
 
     st.pyplot(fig)
 
@@ -255,9 +255,50 @@ def get_alarm_level(hospital_df, community_df, current_date):
 # 9. 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
-# 병원/지역사회 감염 선택값 초기화
-hospital_choice = None
-community_choice = None
+# 드롭다운 선택 초기화
+hospital_choice = st.selectbox("병원 감염 선택", ["선택"] + list(hospital_file_map.keys()))
+community_choice = st.selectbox("지역사회 감염 선택", ["선택"] + list(community_file_map.keys()))
+
+# 선택되었을 때만 gauge 렌더링
+if hospital_choice != "선택" and community_choice != "선택":
+    hospital_df = pd.read_excel(hospital_file_map[hospital_choice][0])
+    community_df = pd.read_excel(community_file_map[community_choice][0])
+    current_date = hospital_df['ds'].max()
+    level = get_alarm_level(hospital_df, community_df, current_date)
+
+    level_color = {
+        1: "#00cc96",  # green
+        2: "#636efa",  # blue
+        3: "#f4c430",  # yellow
+        4: "#ffa15a",  # orange
+        5: "#ef553b"   # red
+    }
+
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=level,
+        title={'text': "경보 레벨", 'font': {'size': 20}},
+        gauge={
+            'axis': {'range': [1, 5], 'tickmode': 'array', 'tickvals': [1, 2, 3, 4, 5]},
+            'bar': {'color': "black", 'thickness': 0.3},
+            'steps': [
+                {'range': [1, 2], 'color': "#00cc96"},
+                {'range': [2, 3], 'color': "#636efa"},
+                {'range': [3, 4], 'color': "#f4c430"},
+                {'range': [4, 5], 'color': "#ffa15a"},
+                {'range': [5, 5.1], 'color': "#ef553b"}
+            ],
+            'threshold': {
+                'line': {'color': "black", 'width': 4},
+                'thickness': 0.75,
+                'value': level
+            }
+        }
+    ))
+    st.plotly_chart(fig, use_container_width=True)
+
+else:
+    st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
 
 # 👉 가운데: 병원 감염 드롭다운 + 예측 그래프
 with center_panel:
