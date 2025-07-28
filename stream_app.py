@@ -122,32 +122,18 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
-    plt.style.use('default')
-    plt.rcParams['font.family'] = 'Noto Sans KR'
-    plt.rcParams['axes.unicode_minus'] = False
-
-    df['ds'] = pd.to_datetime(df['ds'])
-
-    fig, ax = plt.subplots(figsize=(7, 4))
-    ax.plot(df['ds'], df['y'], label='실제 예측값', color='royalblue', marker='o')
-    ax.plot(df['ds'], df['yhat'], label='One-step 예측', linestyle='--', color='red')
-    ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'], color='red', alpha=0.2, label='신뢰구간 (95%)')
-
-    # 이상치 마커
-    if '경보' in df.columns:
-        anomaly_df = df[df['경보'] == True]
-        ax.scatter(anomaly_df['ds'], anomaly_df['y'], color='gold', marker='*', s=120, edgecolors='black', zorder=5)
-
-    # 이상치 범례 항상 표시
-    ax.plot([], [], marker='*', color='gold', label='이상치', linestyle='None', markersize=10)
-
-    ax.set_title(title)
-    ax.set_xlabel("날짜")
-    ax.set_ylabel("예측값")
-    ax.legend(fontsize=10, loc='upper left')
-    ax.grid(True)
-
-    st.pyplot(fig)
+    current_date = pd.to_datetime('2023-08-01')  # 또는 df['ds'].max()
+    file_name = title.replace(" ", "").replace("이상치 예측", "")
+    y_label = "예측값"
+    
+    # 병원 or 지역사회에 따라 라벨 추정
+    if "표본감시" in title:
+        y_label = "표본감시 발생 건수"
+    elif "CRE" in title:
+        y_label = "CRE 발생 건수"
+    
+    plot_graph(df, title_text=title, y_label=y_label, current_date=current_date)
+    render_alarms([(title, df)], current_date=current_date)
 
 # 5. 경보 탑지 함수
 def render_alarms(df, panel_title="경보 내역"):
