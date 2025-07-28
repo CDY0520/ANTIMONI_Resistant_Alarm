@@ -245,7 +245,7 @@ def draw_gauge(level, color_hex=None):
     
     fig.add_trace(go.Pie(
         values=[20] * 5 + [100],
-        rotation=-90,  # ✅ 위쪽 시작
+        rotation=-90,
         hole=0.6,
         direction='clockwise',
         text=level_labels + [''],
@@ -257,7 +257,7 @@ def draw_gauge(level, color_hex=None):
     ))
 
     # 바늘 좌표 계산 (가운데서 시작해서 해당 레벨 위치로)
-    angle_deg = 180 - (level - 1) * 36 - 18  # 각 레벨마다 36도씩 이동, 중앙 기준 조정
+    angle_deg = 180 - (level - 1) * 36 + 18  # 각 레벨마다 36도씩 이동, 중앙 기준 조정
     angle_rad = np.radians(angle_deg)
     x = 0.5 + 0.4 * np.cos(angle_rad)
     y = 0.5 + 0.4 * np.sin(angle_rad)
@@ -286,7 +286,7 @@ def draw_gauge(level, color_hex=None):
     # 중앙 숫자 약간 아래로 이동 (y=0.44)
     fig.add_annotation(
         text=f"<b>{level}</b>",
-        x=0.5, y=0.44,
+        x=0.5, y=0.42,
         font=dict(size=36, color='white', family='Noto Sans KR'),
         showarrow=False
     )
