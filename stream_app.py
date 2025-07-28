@@ -120,11 +120,14 @@ def render_alarms(alarm_records, current_date):
 
     for name, raw_df in alarm_records:
         st.markdown(f"#### 📌 {name}")
-        if '경보' not in raw_df.columns:
+
+        # ✅ 경보 컬럼 boolean으로 강제 변환
+        if '경보' in raw_df.columns:
+            raw_df['경보'] = raw_df['경보'].apply(lambda x: True if str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'] else False)
+        else:
             st.warning("⚠️ '경보' 컬럼 없음")
             continue
         
-
         alarm_df = raw_df[raw_df['경보'].fillna(False)]
         current_alarm = alarm_df[alarm_df['ds'] == current_date]
         past_alarms = alarm_df[alarm_df['ds'] < current_date]
