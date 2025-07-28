@@ -179,8 +179,38 @@ def render_alarms(alarm_records, current_date):
         else:
             st.markdown("과거 경보 내역 없음")
 
-# 경보 레벨 판단 함수
-# 📌 통합 경보 레벨 계산 (예시: 병원 + 지역사회 중 하나라도 경보면 높은 단계)
+# 경보 레벨 색상 매핑
+level_color_map = {
+    1: "Green",
+    2: "Blue",
+    3: "Yellow",
+    4: "Orange",
+    5: "Red"
+}
+
+# 게이지 차트 함수
+def draw_gauge(level, color):
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=level,
+        domain={'x': [0, 1], 'y': [0, 1]},
+        title={'text': "경보 레벨", 'font': {'size': 16}},
+        gauge={
+            'axis': {'range': [1, 5], 'tickmode': 'linear', 'dtick': 1},
+            'bar': {'color': color},
+            'steps': [
+                {'range': [1, 2], 'color': "#00cc96"},
+                {'range': [2, 3], 'color': "#636efa"},
+                {'range': [3, 4], 'color': "#f4c430"},
+                {'range': [4, 5], 'color': "#ffa15a"},
+                {'range': [5, 5.1], 'color': "#ef553b"},
+            ],
+        }
+    ))
+    fig.update_layout(height=220, margin=dict(t=30, b=0, l=10, r=10))
+    st.plotly_chart(fig, use_container_width=True)
+
+# 통합 경보 레벨 계산 함수
 def get_alarm_level(hospital_df, community_df, current_date):
     level = 1  # 기본: 안정
     has_hospital_alarm = hospital_df[(hospital_df['ds'] == current_date) & (hospital_df['경보'] == True)].shape[0] > 0
@@ -189,7 +219,6 @@ def get_alarm_level(hospital_df, community_df, current_date):
     if has_hospital_alarm and has_community_alarm:
         level = 4
     elif has_hospital_alarm:
-        # 최근 2개월 연속 확인 예시로 강화
         recent = hospital_df[hospital_df['경보'] == True].sort_values('ds').tail(2)
         if len(recent) == 2 and (recent['ds'].diff().dt.days.iloc[-1] <= 40):
             level = 5
@@ -199,50 +228,50 @@ def get_alarm_level(hospital_df, community_df, current_date):
         level = 2
     else:
         level = 1
-
     return level
 
-# 게이지 차트 함수
-def draw_gauge(level, color):
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=level,
-        title={'text': "📍 통합 경보 레벨", 'font': {'size': 20}},
-        gauge={
-            'axis': {'range': [1, 5]},
-            'bar': {'color': color},
-            'steps': [
-                {'range': [1, 2], 'color': '#00C49F'},
-                {'range': [2, 3], 'color': '#5E8CFF'},
-                {'range': [3, 4], 'color': '#FFD93D'},
-                {'range': [4, 5], 'color': '#FFA447'},
-                {'range': [5, 5.1], 'color': '#FF6B6B'}
-            ]
-        }
-    ))
-    st.plotly_chart(fig, use_container_width=True)
+# 왼쪽, 가운데, 오른쪽 3분할 레이아웃
+left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
-#  화면 영역 설정
-left_panel, center_panel, right_panel = st.columns([1.1, 1.7, 1.7])
-
+# 왼쪽: 통합 경보
 with left_panel:
-    st.markdown("###  통합 경보")
-    draw_gauge(level, color)  # 현재 통합 경보 단계에 따라 바늘 게이지 표시
-    st.markdown(f"### 현재 레벨: {level}단계 ({color})")
+    st.markdown("### 🛎️ 통합 경보")
 
-    # 경보 레벨 설명표 로드
-    level_table_file = "통합 경보 레벨 설명표.xlsx"
-    if os.path.exists(level_table_file):
-        try:
-            level_df = pd.read_excel(level_table_file)
-            level_df = level_df[['레벨', '명칭', '색상', '의미', '대응']]  # 원하는 컬럼 순서로 정리
-            st.markdown("#### 경보 레벨 체계")
-            st.dataframe(level_df, use_container_width=True, hide_index=True)
-        except Exception as e:
-            st.error(f"📛 경보 레벨 설명표 파일 로드 중 오류: {e}")
+    # 파일 존재 시 로드 및 처리
+    if os.path.exists(hospital_file) and os.path.exists(community_file):
+        hospital_df = pd.read_excel(hospital_file)
+        hospital_df['ds'] = pd.to_datetime(hospital_df['ds'])
+        hospital_df['경보'] = hospital_df['경보'].astype(str).str.upper().isin(['TRUE', '1', '1.0', 'T'])
+
+        community_df = pd.read_excel(community_file)
+        community_df['ds'] = pd.to_datetime(community_df['ds'])
+        community_df['경보'] = community_df['경보'].astype(str).str.upper().isin(['TRUE', '1', '1.0', 'T'])
+
+        # 통합 경보 계산
+        level = get_alarm_level(hospital_df, community_df, current_date)
+        color = level_color_map[level]
+
+        draw_gauge(level, color)
+        st.markdown(f"#### 현재 레벨: {level}단계 ({color})")
     else:
-        st.warning("⚠️ 경보 레벨 설명표 파일을 찾을 수 없습니다.")
+        st.warning("📁 병원 또는 지역사회 경보 파일을 찾을 수 없습니다.")
 
+    # 메세지 엑셀 로드
+    if os.path.exists(message_file):
+        message_df = pd.read_excel(message_file)
+        for _, row in message_df.iterrows():
+            st.markdown(f"📝 **{row['제목']}**")
+            st.markdown(f"<div style='font-size:14px; color:#444'>{row['내용']}</div>", unsafe_allow_html=True)
+    else:
+        st.info("ℹ️ 통합 메세지 파일 없음")
+
+    # 경보 레벨표 이미지
+    if os.path.exists(level_image):
+        st.image(level_image, use_column_width=True)
+    else:
+        st.info("ℹ️ 경보 레벨표 이미지 파일 없음")
+
+# 가운데: 병원 감염 경보
 with center_panel:
     st.markdown("#### 병원 이상치 예측")
     if hospital_choice != "선택":
@@ -250,7 +279,8 @@ with center_panel:
         pass
     else:
         st.info("병원 감염 데이터를 선택하세요.")
-
+        
+# 오른쪽: 지역사회 감염 경보
 with right_panel:
     st.markdown("#### 지역사회 이상치 예측")
     if community_choice != "선택":
@@ -261,7 +291,6 @@ with right_panel:
 
 # 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
-left_col, right_col = st.columns(2)
 
 
 
