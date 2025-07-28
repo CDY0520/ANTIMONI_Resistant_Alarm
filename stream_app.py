@@ -33,7 +33,6 @@ st.markdown(
     """
     <div style="background-color: #2B3F73; padding: 20px; border-radius: 10px; text-align: center;">
         <h1 style="color: white; font-family: 'Noto Sans KR', sans-serif;">이상치 탐지 모니터링</h1>
-        <p style="color: white; font-size: 18px;">예측 결과 및 이상치 경보를 확인하세요.</p>
     </div>
     """,
     unsafe_allow_html=True
@@ -424,37 +423,35 @@ with left_panel:
 
 # 👉 병원 예측 그래프 표시
 with center_panel:
-    st.markdown("### 병원 감염 이상치 예측")
     if hospital_df is not None:
-        visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
-        
-        # 현재 경보 메시지 출력
-        current_month = pd.to_datetime(hospital_df["ds"].max()).strftime("%Y-%m")
-        current_alert_msg = hospital_df[hospital_df["ds"].dt.strftime("%Y-%m") == current_month]["경보해석"].dropna()
-        if not current_alert_msg.empty:
-            st.info(f"📌 현재 경보 메시지: **{current_alert_msg.values[0]}**")
+        current_date = hospital_df['ds'].max()
+        level = get_alarm_level(hospital_df, community_df, current_date)
 
-        # 과거 경보 내역 테이블
-        hospital_alert_df = hospital_df[hospital_df["경보"] == True] if "경보" in hospital_df.columns else pd.DataFrame()
-        render_alarms(hospital_alert_df, panel_title="과거 경보 내역")
+        # 경보 발생 여부 확인
+        if level > 1:
+            # 경보 메시지 발생
+            st.markdown(f"📌 [병원 감염] {current_date} - 경보 발생! 경보 레벨: {level}")
+            # 경보 관련 추가 메시지
+        else:
+            # 경보 미발생
+            st.markdown(f"📌 [병원 감염] {current_date} - 현재 이상치가 발생하지 않아 경보가 없습니다.")
 
 
 # 👉 지역사회 예측 그래프 표시
 with right_panel:
-    st.markdown("### 지역사회 감염 이상치 예측")
+    # 지역사회 경보 메시지 출력
     if community_df is not None:
-        visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
+        current_date = community_df['ds'].max()
+        level = get_alarm_level(hospital_df, community_df, current_date)
 
-        # 현재 경보 메시지 출력
-        current_month = pd.to_datetime(community_df["ds"].max()).strftime("%Y-%m")
-        current_alert_msg = community_df[community_df["ds"].dt.strftime("%Y-%m") == current_month]["경보해석"].dropna()
-        if not current_alert_msg.empty:
-            st.info(f"📌 현재 경보 메시지: **{current_alert_msg.values[0]}**")
-
-        # 과거 경보 내역 테이블
-        community_alert_df = community_df[community_df["경보"] == True] if "경보" in community_df.columns else pd.DataFrame()
-        render_alarms(community_alert_df, panel_title="과거 경보 내역")
-
+        # 경보 발생 여부 확인
+        if level > 1:
+            # 경보 메시지 발생
+            st.markdown(f"📌 [지역사회 감염] {current_date} - 경보 발생! 경보 레벨: {level}")
+            # 경보 관련 추가 메시지
+        else:
+            # 경보 미발생
+            st.markdown(f"📌 [지역사회 감염] {current_date} - 현재 이상치가 발생하지 않아 경보가 없습니다.")
 
 # 10. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
