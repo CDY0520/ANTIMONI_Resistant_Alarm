@@ -51,10 +51,11 @@ community_file_map = {
     "표본감시(충북)": ("표본감시(충북)_경보결과.xlsx", "표본감시(충북) 이상치 탐지", "표본감시 발생 건수")
 }
 
-# 10. 현재 날짜 설정
+# 3. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
+level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
 
-# 3. 시각화 함수
+# 4. 시각화 함수
 def plot_graph(df, title_text, y_label, current_date):
     import matplotlib.patches as mpatches
 
@@ -123,7 +124,7 @@ def plot_graph(df, title_text, y_label, current_date):
 
     st.pyplot(fig)
 
-# 4. 시각화 래퍼 함수
+# 5. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
@@ -171,7 +172,7 @@ def visualize_alert_graph(df, title="이상치 예측"):
     st.pyplot(fig)
 
 
-# 5. 경보 탑지 함수
+# 6. 경보 탑지 함수
 def render_alert_message(latest_df, dataset_label="병원 감염"):
     """
     이상치 발생 여부에 따라 경보 메시지 출력.
@@ -203,7 +204,7 @@ def render_alert_message(latest_df, dataset_label="병원 감염"):
         """
         st.markdown(message_md, unsafe_allow_html=True)
 
-# 6. 경보 레벨 색상 매핑
+# 7. 경보 레벨 색상 매핑
 level_color_map = {
     1: "#00cc96",  # Green
     2: "#636efa",  # Blue
@@ -212,7 +213,7 @@ level_color_map = {
     5: "#ef553b"   # Red
 }
 
-# 7. 게이지 차트 함수
+# 8. 게이지 차트 함수
 def draw_gauge(level, color_hex=None):
     # 값 체크
     if level < 1 or level > 5:
@@ -267,7 +268,7 @@ def draw_gauge(level, color_hex=None):
 
     st.plotly_chart(fig, use_container_width=True)
 
-# 8. 경보 레벨 판단 함수
+# 9. 경보 레벨 판단 함수
 def get_alarm_level(hospital_df, community_df, current_date):
     current_month = pd.to_datetime(current_date).strftime("%Y-%m")
 
@@ -303,14 +304,15 @@ def get_alarm_level(hospital_df, community_df, current_date):
     else:
         return 1
 
-
-def get_integrated_alert_level(hospital_df, community_df):
+# current_date 매번 외부에서 받도록 설정
+def get_integrated_alert_level(hospital_df, community_df, current_date):
     level = get_alarm_level(hospital_df, community_df, current_date)
     color_hex = level_color_map.get(level, "#000000")
     return level, color_hex
 
 
-# 9. 3분할 레이아웃
+
+# 10. 3분할 레이아웃
 # 3분할 레이아웃 구성
 col1, col2, col3 = st.columns([1.2, 2.5, 2.5])
 
