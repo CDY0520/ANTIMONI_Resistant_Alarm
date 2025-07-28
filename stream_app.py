@@ -1,4 +1,4 @@
-# 라이브러리 임포트
+# 0. 라이브러리 임포트 및 설정
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ else:
     plt.rcParams['font.family'] = fontprop.get_name()
     plt.rcParams['axes.unicode_minus'] = False
 
-# Streamlit UI 시작
+# 1. Streamlit UI 시작
 # 페이지 설정
 st.set_page_config(layout="wide")
 
@@ -36,7 +36,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# 파일 매핑
+# 2. 파일 매핑
 hospital_file_map = {
     "CRE(충북대병원)": ("CRE(충북대)_경보결과.xlsx", "CRE(충북대병원) 이상치 탐지", "CRE 발생 건수"),
     "표본감시(충북대병원)": ("표본감시(충북대)_경보결과.xlsx", "표본감시(충북대병원) 이상치 탐지", "표본감시 발생 건수")
@@ -49,7 +49,7 @@ community_file_map = {
     "표본감시(충북)": ("표본감시(충북)_경보결과.xlsx", "표본감시(충북) 이상치 탐지", "표본감시 발생 건수")
 }
 
-# 시각화 함수
+# 3. 시각화 함수
 def plot_graph(df, title_text, y_label, current_date):
     import matplotlib.patches as mpatches
 
@@ -118,7 +118,7 @@ def plot_graph(df, title_text, y_label, current_date):
     st.pyplot(fig)
 
 
-# 경보 탑지 함수
+# 4. 경보 탑지 함수
 def render_alarms(alarm_records, current_date):
     st.markdown("### 🙎️ 경보 내역")
 
@@ -170,7 +170,7 @@ def render_alarms(alarm_records, current_date):
         else:
             st.markdown("과거 경보 내역 없음")
 
-# 경보 레벨 색상 매핑
+# 5. 경보 레벨 색상 매핑
 level_color_map = {
     1: "Green",
     2: "Blue",
@@ -179,7 +179,7 @@ level_color_map = {
     5: "Red"
 }
 
-# 게이지 차트 함수
+# 6. 게이지 차트 함수
 def draw_gauge(level, color):
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
@@ -201,7 +201,7 @@ def draw_gauge(level, color):
     fig.update_layout(height=220, margin=dict(t=30, b=0, l=10, r=10))
     st.plotly_chart(fig, use_container_width=True)
 
-# 경보 레벨 판단 함수
+# 7. 경보 레벨 판단 함수
 def get_alarm_level(hospital_df, community_df, current_date):
     # 현재 날짜 기준으로 가장 최근 월 선택
     current_month = pd.to_datetime(current_date).strftime("%Y-%m")
@@ -234,10 +234,26 @@ def get_alarm_level(hospital_df, community_df, current_date):
     else:
         return 1
 
-# 왼쪽, 가운데, 오른쪽 3분할 레이아웃
+# 8. 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
-# 왼쪽: 통합 경보 영역
+# 병원/지역사회 감염 선택값 초기화
+hospital_choice = None
+community_choice = None
+
+# 👉 가운데: 병원 감염 드롭다운 + 예측 그래프
+with center_panel:
+    st.markdown("### 🏥 병원 이상치 예측")
+    st.markdown("#### 🏥 병원 감염")
+    hospital_choice = st.selectbox("병원 감염 선택", list(hospital_file_map.keys()))
+
+# 👉 오른쪽: 지역사회 감염 드롭다운 + 예측 그래프
+with right_panel:
+    st.markdown("### 🌐 지역사회 이상치 예측")
+    st.markdown("#### 🌐 지역사회 감염")
+    community_choice = st.selectbox("지역사회 감염 선택", list(community_file_map.keys()))
+
+# 👉 왼쪽: 통합 경보 영역
 with left_panel:
     st.markdown("### 🔔 통합 경보")
 
@@ -245,14 +261,14 @@ with left_panel:
     hospital_df = None
     community_df = None
 
-    if hospital_choice != "선택":
+    if hospital_choice and hospital_choice != "선택":
         file, title, ylabel = hospital_file_map[hospital_choice]
         if os.path.exists(file):
             hospital_df = pd.read_excel(file)
         else:
             st.warning(f"📁 병원 감염 파일({file})이 없습니다.")
 
-    if community_choice != "선택":
+    if community_choice and community_choice != "선택":
         file, title, ylabel = community_file_map[community_choice]
         if os.path.exists(file):
             community_df = pd.read_excel(file)
@@ -263,6 +279,9 @@ with left_panel:
     if hospital_df is not None and community_df is not None:
         current_date = hospital_df['ds'].max()
         level = get_alarm_level(hospital_df, community_df, current_date)
+        level_color_map = {
+            1: 'green', 2: 'blue', 3: 'yellow', 4: 'orange', 5: 'red'
+        }
         color = level_color_map[level]
 
         draw_gauge(level, color)
@@ -270,7 +289,7 @@ with left_panel:
     else:
         st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
 
-    # 경보 레벨 설명 표 (코드 구현 버전)
+    # 경보 레벨 설명 표
     st.markdown("### 📋 경보 레벨 체계 (5단계)")
     level_rows = [
         ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
@@ -296,38 +315,21 @@ with left_panel:
         f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
     ]) + "</table>", unsafe_allow_html=True)
 
-# 병원/지역사회 감염 선택 박스를 수평으로 배치
-    col1, col2 = st.columns([1, 1])
-
-# 가운데: 병원 감염 예측 그래프
+# 병원 예측 그래프 표시
 with center_panel:
-    st.markdown("### 🏥 병원 이상치 예측")
     if hospital_df is not None:
         visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
     else:
         st.info("병원 감염 데이터를 선택하세요.")
-        
-    with col1:
-        st.markdown("#### 🏥 병원 감염")
-        hospital_choice = st.selectbox(
-            "병원 감염 선택", list(hospital_file_map.keys()), label_visibility="collapsed"
-        )
 
-# 오른쪽: 지역사회 감염 예측 그래프
+# 지역사회 예측 그래프 표시
 with right_panel:
-    st.markdown("### 🌐 지역사회 이상치 예측")
     if community_df is not None:
         visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
     else:
         st.info("지역사회 감염 데이터를 선택하세요.")
-    
-    with col2:
-        st.markdown("#### 🌐 지역사회 감염")
-        community_choice = st.selectbox(
-            "지역사회 감염 선택", list(community_file_map.keys()), label_visibility="collapsed"
-        )
 
-# 현재 날짜 설정
+# 9. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
 
 
