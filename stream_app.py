@@ -425,17 +425,37 @@ with left_panel:
     
 # 👉 병원 예측 그래프 표시
 with center_panel:
+    st.markdown("### 병원 감염 이상치 예측")
     if hospital_df is not None:
         visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
-    else:
-        st.info("병원 감염 데이터를 선택하세요.")
+        
+        # 현재 경보 메시지 출력
+        current_month = pd.to_datetime(hospital_df["ds"].max()).strftime("%Y-%m")
+        current_alert_msg = hospital_df[hospital_df["ds"].dt.strftime("%Y-%m") == current_month]["경보해석"].dropna()
+        if not current_alert_msg.empty:
+            st.info(f"📌 현재 경보 메시지: **{current_alert_msg.values[0]}**")
+
+        # 과거 경보 내역 테이블
+        hospital_alert_df = hospital_df[hospital_df["경보"] == True] if "경보" in hospital_df.columns else pd.DataFrame()
+        render_alarms(hospital_alert_df, panel_title="과거 경보 내역")
+
 
 # 👉 지역사회 예측 그래프 표시
 with right_panel:
+    st.markdown("### 지역사회 감염 이상치 예측")
     if community_df is not None:
         visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
-    else:
-        st.info("지역사회 감염 데이터를 선택하세요.")
+
+        # 현재 경보 메시지 출력
+        current_month = pd.to_datetime(community_df["ds"].max()).strftime("%Y-%m")
+        current_alert_msg = community_df[community_df["ds"].dt.strftime("%Y-%m") == current_month]["경보해석"].dropna()
+        if not current_alert_msg.empty:
+            st.info(f"📌 현재 경보 메시지: **{current_alert_msg.values[0]}**")
+
+        # 과거 경보 내역 테이블
+        community_alert_df = community_df[community_df["경보"] == True] if "경보" in community_df.columns else pd.DataFrame()
+        render_alarms(community_alert_df, panel_title="과거 경보 내역")
+
 
 # 10. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
