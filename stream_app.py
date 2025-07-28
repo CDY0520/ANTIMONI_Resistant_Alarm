@@ -247,6 +247,15 @@ with left_panel:
         else:
             st.warning(f"⚠️ [{file}] 파일이 없습니다.")
 
+    if hospital_choice != "선택":
+        file, title, ylabel = hospital_file_map[hospital_choice]
+        if os.path.exists(file):
+            hospital_df = pd.read_excel(file)
+            hospital_df.columns = hospital_df.columns.str.strip()
+            hospital_df['ds'] = pd.to_datetime(hospital_df['ds'])
+        else:
+            st.warning(f"⚠️ 병원 감염 파일({file})이 없습니다.")
+
     if community_choice != "선택":
         file, title, ylabel = community_file_map[community_choice]
         if os.path.exists(file):
@@ -254,8 +263,9 @@ with left_panel:
             community_df.columns = community_df.columns.str.strip()
             community_df['ds'] = pd.to_datetime(community_df['ds'])
         else:
-            st.warning(f"⚠️ [{file}] 파일이 없습니다.")
+            st.warning(f"⚠️ 지역사회 감염 파일({file})이 없습니다.")
 
+# 이후 통합 레벨 판단
     if hospital_df is not None and community_df is not None:
         level = get_alarm_level(hospital_df, community_df, current_date)
         color = level_color_map[level]
@@ -263,25 +273,7 @@ with left_panel:
         draw_gauge(level, color)
         st.markdown(f"#### 현재 레벨: {level}단계 ({color})")
     else:
-        st.warning("📁 병원 또는 지역사회 경보 파일을 찾을 수 없습니다.")
-
-        # 통합 경보 계산
-        level = get_alarm_level(hospital_df, community_df, current_date)
-        color = level_color_map[level]
-
-        draw_gauge(level, color)
-        st.markdown(f"#### 현재 레벨: {level}단계 ({color})")
-    else:
-        st.warning("📁 병원 또는 지역사회 경보 파일을 찾을 수 없습니다.")
-
-    # 메세지 엑셀 로드
-    if os.path.exists(message_file):
-        message_df = pd.read_excel(message_file)
-        for _, row in message_df.iterrows():
-            st.markdown(f"📝 **{row['제목']}**")
-            st.markdown(f"<div style='font-size:14px; color:#444'>{row['내용']}</div>", unsafe_allow_html=True)
-    else:
-        st.info("ℹ️ 통합 메세지 파일 없음")
+        st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
 
     # 경보 레벨표 이미지
     if os.path.exists(level_image):
