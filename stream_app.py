@@ -350,8 +350,8 @@ with col3:
     community_choice = st.selectbox("지역사회 감염을 선택하세요", community_options, key="community_select")
     community_df = data_dict[community_choice]
 
-    # 지역사회 감염 그래프
-   plot_graph(community_df, title="지역사회 감염 이상치 예측")
+    # 지역감염 그래프
+    plot_graph(community_df, title="지역사회 감염 이상치 예측")
 
     # 현재 경보 메시지
     latest_comm = community_df[community_df['ds'] == community_df['ds'].max()]
