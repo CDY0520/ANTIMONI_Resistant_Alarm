@@ -212,23 +212,33 @@ def draw_gauge(level, color):
 
 # 통합 경보 레벨 계산 함수
 def get_alarm_level(hospital_df, community_df, current_date):
-    level = 1  # 기본: 안정
-    has_hospital_alarm = hospital_df[(hospital_df['ds'] == current_date) & (hospital_df['경보'] == True)].shape[0] > 0
-    has_community_alarm = community_df[(community_df['ds'] == current_date) & (community_df['경보'] == True)].shape[0] > 0
+    """
+    hospital_df, community_df: 'ds', '경보' 컬럼이 있는 DataFrame
+    current_date: datetime (예: 2023-08-01)
+    """
 
-    if has_hospital_alarm and has_community_alarm:
-        level = 4
-    elif has_hospital_alarm:
-        recent = hospital_df[hospital_df['경보'] == True].sort_values('ds').tail(2)
-        if len(recent) == 2 and (recent['ds'].diff().dt.days.iloc[-1] <= 40):
-            level = 5
-        else:
-            level = 3
-    elif has_community_alarm:
-        level = 2
+    def is_alarm(df, date):
+        return not df[(df['ds'] == date) & (df['경보'] == True)].empty
+
+    def is_consecutive_alarm(df, date):
+        prev_month = (date - pd.DateOffset(months=1)).replace(day=1)
+        this_month_alarm = is_alarm(df, date)
+        prev_month_alarm = is_alarm(df, prev_month)
+        return this_month_alarm and prev_month_alarm
+
+    hospital_alarm = is_alarm(hospital_df, current_date)
+    community_alarm = is_alarm(community_df, current_date)
+
+    if is_consecutive_alarm(hospital_df, current_date):
+        return 5
+    elif hospital_alarm and community_alarm:
+        return 4
+    elif hospital_alarm:
+        return 3
+    elif community_alarm:
+        return 2
     else:
-        level = 1
-    return level
+        return 1
 
 # 왼쪽, 가운데, 오른쪽 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
