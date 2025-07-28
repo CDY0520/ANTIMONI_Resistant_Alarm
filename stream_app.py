@@ -122,42 +122,30 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
-    # 2023년만 시각화
-    df = df.copy()
+    plt.style.use('default')
+    plt.rcParams['font.family'] = 'Noto Sans KR'
+    plt.rcParams['axes.unicode_minus'] = False
+
     df['ds'] = pd.to_datetime(df['ds'])
-    df = df[df['ds'].dt.year == 2023]
-    
-    fig, ax = plt.subplots(figsize=(6, 3.2))
 
-    ax.plot(df["ds"], df["y"], label="실제 예측값", marker='o', color='royalblue', linewidth=1.5)
-    ax.plot(df["ds"], df["yhat"], label="One-step 예측", linestyle="--", color='crimson', linewidth=1.5)
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.plot(df['ds'], df['y'], label='실제 예측값', color='royalblue', marker='o')
+    ax.plot(df['ds'], df['yhat'], label='One-step 예측', linestyle='--', color='red')
+    ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'], color='red', alpha=0.2, label='신뢰구간 (95%)')
 
-    ax.fill_between(df["ds"], df["yhat_lower"], df["yhat_upper"], color='lightcoral', alpha=0.3, label="신뢰구간 (95%)")
+    # 이상치 마커
+    if '경보' in df.columns:
+        anomaly_df = df[df['경보'] == True]
+        ax.scatter(anomaly_df['ds'], anomaly_df['y'], color='gold', marker='*', s=120, edgecolors='black', zorder=5)
 
-    # 이상치 점 표시
-    if "경보" in df.columns and df["경보"].any():
-        alert_df = df[df["경보"] == True]
-        ax.scatter(alert_df["ds"], alert_df["y"], marker='*', color='gold', s=150, edgecolors='black', label="이상치")
+    # 이상치 범례 항상 표시
+    ax.plot([], [], marker='*', color='gold', label='이상치', linestyle='None', markersize=10)
 
-    else:
-        # 이상치 없더라도 범례 표시 위해 투명 마커 추가
-        ax.scatter([], [], marker='*', color='gold', s=150, edgecolors='black', label="이상치")
-
-    ax.set_title(title, fontsize=13)
-    ax.set_xlabel("날짜", fontsize=11)
-    ax.set_ylabel("예측값", fontsize=11)
-
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
-    ax.tick_params(axis='x', rotation=45)
-    ax.grid(True, linestyle='--', alpha=0.5)
-
-    ax.legend(loc='upper left', fontsize=9)  # 범례 폰트 크기 줄임
-
-    # 배경 스타일 조정
-    fig.patch.set_facecolor('#fff1e6')
-    ax.set_facecolor('#fff1e6')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    ax.set_title(title)
+    ax.set_xlabel("날짜")
+    ax.set_ylabel("예측값")
+    ax.legend(fontsize=10, loc='upper left')
+    ax.grid(True)
 
     st.pyplot(fig)
 
