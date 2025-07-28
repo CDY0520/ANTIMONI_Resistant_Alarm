@@ -138,10 +138,9 @@ def visualize_alert_graph(df, title="이상치 예측"):
 
 # 5. 경보 탑지 함수
 def render_alarms(alarm_records, current_date):
-    st.markdown("### 🙎️ 경보 내역")
+    st.markdown("### 경보 내역")
 
     for name, raw_df in alarm_records:
-        st.markdown(f"#### 📌 {name}")
 
         if '경보' not in raw_df.columns:
             st.warning("⚠️ '경보' 컬럼 없음")
@@ -165,7 +164,7 @@ def render_alarms(alarm_records, current_date):
             <div style='background-color:#fff4e5; padding:10px 14px; border-radius:6px;
                         border-left: 5px solid #ff8800; font-size: 14px; margin-bottom:8px;'>
               <div style='color:red; font-weight:bold; margin-bottom:6px'>
-                📌 현재 경보 발생 ({row['ds'].strftime('%Y-%m')})
+                 현재 경보 발생 ({row['ds'].strftime('%Y-%m')})
               </div>
               <div style='color:black; margin-bottom:4px'> 
                 ▶ 실제값 <b>{row['y']:.0f}</b>이(가) 예측상한 <b>{row['yhat_upper']:.2f}</b> 초과
@@ -175,7 +174,7 @@ def render_alarms(alarm_records, current_date):
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown(f"<span style='font-size:13px;color:gray'>📍 현재({current_date.strftime('%Y-%m')})에는 경보가 없습니다.</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='font-size:13px;color:gray'>📌 현재({current_date.strftime('%Y-%m')})에는 경보가 없습니다.</span>", unsafe_allow_html=True)
 
         if not past_alarms.empty:
             st.markdown("과거 경보 내역")
