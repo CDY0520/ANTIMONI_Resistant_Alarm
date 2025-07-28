@@ -6,6 +6,7 @@ import matplotlib.font_manager as fm
 import matplotlib.dates as mdates
 from datetime import datetime
 import os
+import plotly.graph_objects as go
 import logging
 import warnings
 
@@ -24,16 +25,27 @@ else:
     plt.rcParams['axes.unicode_minus'] = False
 
 # Streamlit UI 시작
+# 페이지 설정
 st.set_page_config(layout="wide")
-st.title("📈 이상치 탐지 모니터링")
+
+# 상단 제목 영역 (회색 배경 + 흰 글씨)
+st.markdown("""
+    <div style='background-color: #4D4D4D; padding: 20px; border-radius: 8px;'>
+        <h1 style='color: white; text-align: center; margin: 0;'>📊 이상치 탐지 모니터링</h1>
+        <p style='color: white; text-align: center; font-size: 16px;'>예측 결과 및 이상치 경보를 확인하세요.</p>
+    </div>
+""", unsafe_allow_html=True)
+
 st.write("예측 결과 및 이상치 경보를 확인하세요.")
 
 # 드롭다운 메뉴
+st.markdown("")
+
 col1, col2 = st.columns(2)
 with col1:
-    hospital_choice = st.selectbox("🏥 병원 감염 선택", ["선택", "CRE(충북대병원)", "표본감시(충북대병원)"], index=0)
+    hospital_choice = st.selectbox(" 병원 감염 선택", ["선택", "CRE(충북대병원)", "표본감시(충북대병원)"], index=0)
 with col2:
-    community_choice = st.selectbox("🌎 지역사회 감염 선택", ["선택", "CRE(전국)", "CRE(충북)", "표본감시(전국)", "표본감시(충북)"], index=0)
+    community_choice = st.selectbox(" 지역사회 감염 선택", ["선택", "CRE(전국)", "CRE(충북)", "표본감시(전국)", "표본감시(충북)"], index=0)
 
 # 파일 매핑
 hospital_file_map = {
@@ -173,9 +185,6 @@ def render_alarms(alarm_records, current_date):
         else:
             st.markdown("과거 경보 내역 없음")
 
-# 필요한 라이브러리 추가
-import plotly.graph_objects as go
-
 # 경보 레벨 판단 함수
 def get_alarm_level(internal_df, external_df, current_date):
     internal_df['경보'] = internal_df['경보'].apply(lambda x: str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'])
@@ -220,57 +229,38 @@ def draw_gauge(level, color):
 
 
 #  화면 영역 설정
-left_panel, mid_panel, right_panel = st.columns([1.4, 2.8, 2.8])
+left_panel, center_panel, right_panel = st.columns([1.1, 1.7, 1.7])
 
-#  데이터 불러오고 통합 경보 판단 후 좌측 게이지 표시
-if hospital_choice != "선택" and community_choice != "선택":
-    h_file, _, _ = hospital_file_map[hospital_choice]
-    c_file, _, _ = community_file_map[community_choice]
+with left_panel:
+    st.markdown("### 🛎️ 통합 경보")
+    # draw_gauge(level, color)  # 차트 함수
+    st.markdown("통합 게이지 차트 영역입니다.")
+    st.image("통합경보_레벨설명표.png", use_column_width=True)
 
-    if os.path.exists(h_file) and os.path.exists(c_file):
-        h_df = pd.read_excel(h_file)
-        c_df = pd.read_excel(c_file)
-        h_df.columns = h_df.columns.str.strip()
-        c_df.columns = c_df.columns.str.strip()
-        h_df['ds'] = pd.to_datetime(h_df['ds'])
-        c_df['ds'] = pd.to_datetime(c_df['ds'])
+    message_file = "통합 경보 메세지.xlsx"
+    if os.path.exists(message_file):
+        message_df = pd.read_excel(message_file)
+        for _, row in message_df.iterrows():
+            st.markdown(f"📝 **{row['제목']}**")
+            st.markdown(f"<div style='font-size:14px; color:#444'>{row['내용']}</div>", unsafe_allow_html=True)
+    else:
+        st.info("📄 통합 경보 메시지를 불러오는 중입니다...")
 
-        level, color = get_alarm_level(h_df, c_df, current_date)
-        
-        # 왼쪽 화면 영역: 통합 메세지 및 경보 게이지 설명
-        with left_panel:
-            st.markdown("### 🛎️ 통합 경보")
-            draw_gauge(level, color)  # 게이지 차트 시각화 함수
-            st.markdown(f"### 현재 레벨: {level}단계 ({color})")
+with center_panel:
+    st.markdown("#### 병원 이상치 예측")
+    if hospital_choice != "선택":
+        # 병원 시각화 함수 호출
+        pass
+    else:
+        st.info("병원 감염 데이터를 선택하세요.")
 
-        # 경보 레벨 설명 이미지
-            st.image("통합경보_레벨설명표.png", use_column_width=True)
-
-        # 통합 경보 메시지 로드
-            message_file = "통합 경보 메세지.xlsx"
-            if os.path.exists(message_file):
-                message_df = pd.read_excel(message_file)
-                for _, row in message_df.iterrows():
-                    st.markdown(f"📝 **{row['제목']}**")
-                    st.markdown(f"<div style='font-size:14px; color:#444'>{row['내용']}</div>", unsafe_allow_html=True)
-            else:
-                st.warning("⚠️ 통합 경보 메세지 파일을 찾을 수 없습니다.")
-
-        #  가운데 화면 영역: 내부 감염 그래프
-        with mid_panel:
-            if os.path.exists(h_file):
-                df = h_df[(h_df['ds'] >= '2023-01-01') & (h_df['ds'] <= '2023-12-31')].copy()
-                st.subheader(f" {hospital_choice}")
-                plot_graph(df, hospital_file_map[hospital_choice][1], hospital_file_map[hospital_choice][2], current_date)
-                render_alarms([(hospital_choice, h_df)], current_date)
-
-        # 오른쪽 화면 영역: 외부 감염 그래프
-        with right_panel:
-            if os.path.exists(c_file):
-                df = c_df[(c_df['ds'] >= '2023-01-01') & (c_df['ds'] <= '2023-12-31')].copy()
-                st.subheader(f" {community_choice}")
-                plot_graph(df, community_file_map[community_choice][1], community_file_map[community_choice][2], current_date)
-                render_alarms([(community_choice, c_df)], current_date)
+with right_panel:
+    st.markdown("#### 지역사회 이상치 예측")
+    if community_choice != "선택":
+        # 지역사회 시각화 함수 호출
+        pass
+    else:
+        st.info("지역사회 감염 데이터를 선택하세요.")
 
 # 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
