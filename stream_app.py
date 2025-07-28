@@ -333,17 +333,19 @@ with left_panel:
 
 # 👉 병원 예측 그래프 표시
 with center_panel:
+    st.markdown("### 병원 감염 이상치 예측")
     if hospital_df is not None:
         visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
-    else:
-        st.info("병원 감염 데이터를 선택하세요.")
+        show_alert_table(hospital_alert_df, panel_title="과거 경보 내역")
+
 
 # 👉 지역사회 예측 그래프 표시
 with right_panel:
+    st.markdown("### 지역사회 감염 이상치 예측")
     if community_df is not None:
         visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
-    else:
-        st.info("지역사회 감염 데이터를 선택하세요.")
+        show_alert_table(community_alert_df, panel_title="과거 경보 내역")
+
 
 # 10. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
