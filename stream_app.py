@@ -211,34 +211,35 @@ def draw_gauge(level, color):
     st.plotly_chart(fig, use_container_width=True)
 
 # 통합 경보 레벨 계산 함수
-def get_alarm_level(hospital_df, community_df, current_date):
-    """
-    hospital_df, community_df: 'ds', '경보' 컬럼이 있는 DataFrame
-    current_date: datetime (예: 2023-08-01)
-    """
+def draw_gauge(level, color_code):
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=level,
+        number={'suffix': "단계", 'font': {'size': 24}},
+        domain={'x': [0, 1], 'y': [0, 1]},
+        gauge={
+            'axis': {'range': [1, 5], 'tickmode': 'array', 'tickvals': [1, 2, 3, 4, 5]},
+            'bar': {'color': color_code, 'thickness': 0.3},
+            'steps': [
+                {'range': [1, 2], 'color': '#4CAF50'},
+                {'range': [2, 3], 'color': '#2196F3'},
+                {'range': [3, 4], 'color': '#FFC107'},
+                {'range': [4, 5], 'color': '#FF5722'},
+                {'range': [5, 5.01], 'color': '#F44336'}
+            ],
+            'threshold': {
+                'line': {'color': "black", 'width': 4},
+                'thickness': 0.75,
+                'value': level
+            }
+        }
+    ))
 
-    def is_alarm(df, date):
-        return not df[(df['ds'] == date) & (df['경보'] == True)].empty
-
-    def is_consecutive_alarm(df, date):
-        prev_month = (date - pd.DateOffset(months=1)).replace(day=1)
-        this_month_alarm = is_alarm(df, date)
-        prev_month_alarm = is_alarm(df, prev_month)
-        return this_month_alarm and prev_month_alarm
-
-    hospital_alarm = is_alarm(hospital_df, current_date)
-    community_alarm = is_alarm(community_df, current_date)
-
-    if is_consecutive_alarm(hospital_df, current_date):
-        return 5
-    elif hospital_alarm and community_alarm:
-        return 4
-    elif hospital_alarm:
-        return 3
-    elif community_alarm:
-        return 2
-    else:
-        return 1
+    fig.update_layout(
+        margin=dict(t=20, b=0, l=0, r=0),
+        height=200
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 # 왼쪽, 가운데, 오른쪽 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
@@ -286,10 +287,33 @@ with left_panel:
         st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
 
     # 경보 레벨표 이미지
-    if os.path.exists(level_image):
-        st.image(level_image, use_column_width=True)
-    else:
-        st.info("ℹ️ 경보 레벨표 이미지 파일 없음")
+    st.markdown("### 경보 레벨 체계 (5단계)")
+
+    level_rows = [
+        ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
+        ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
+        ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
+        ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
+        ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속"),
+    ]
+
+    # HTML 테이블 형태로 출력
+    st.markdown("""
+    <style>
+    .custom-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
+    }
+    .custom-table td {
+        border: 1px solid #ddd;
+        padding: 6px;
+    }
+    </style>
+    <table class="custom-table">
+    """ + "".join([
+        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
+    ]) + "</table>", unsafe_allow_html=True)
 
 # 가운데: 병원 감염 경보
 with center_panel:
