@@ -85,7 +85,6 @@ def plot_graph(df, title_text, y_label, current_date):
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
     # 이상치 (경보) 시각화
-    # 이상치 시각화
     outlier_label_added = False
     if '경보' in df.columns:
         try:
@@ -101,9 +100,6 @@ def plot_graph(df, title_text, y_label, current_date):
                 outlier_label_added = True
         except Exception as e:
             st.error(f"⚠️ 이상치 시각화 오류: {e}")
-
-
-
 
     # 예측 시작선
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
@@ -184,25 +180,27 @@ def render_alarms(alarm_records, current_date):
             st.markdown("과거 경보 내역 없음")
 
 # 경보 레벨 판단 함수
-def get_alarm_level(internal_df, external_df, current_date):
-    internal_df['경보'] = internal_df['경보'].apply(lambda x: str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'])
-    external_df['경보'] = external_df['경보'].apply(lambda x: str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'])
+# 📌 통합 경보 레벨 계산 (예시: 병원 + 지역사회 중 하나라도 경보면 높은 단계)
+def get_alarm_level(hospital_df, community_df, current_date):
+    level = 1  # 기본: 안정
+    has_hospital_alarm = hospital_df[(hospital_df['ds'] == current_date) & (hospital_df['경보'] == True)].shape[0] > 0
+    has_community_alarm = community_df[(community_df['ds'] == current_date) & (community_df['경보'] == True)].shape[0] > 0
 
-    internal_alarm_count = internal_df[(internal_df['ds'] == current_date) & (internal_df['경보'])].shape[0]
-    external_alarm_count = external_df[(external_df['ds'] == current_date) & (external_df['경보'])].shape[0]
-
-    internal_prev = internal_df[(internal_df['ds'] == current_date - pd.DateOffset(months=1)) & (internal_df['경보'])].shape[0]
-
-    if internal_alarm_count and internal_prev:
-        return 5, "Red"
-    elif internal_alarm_count and external_alarm_count:
-        return 4, "Orange"
-    elif internal_alarm_count:
-        return 3, "Yellow"
-    elif external_alarm_count:
-        return 2, "Blue"
+    if has_hospital_alarm and has_community_alarm:
+        level = 4
+    elif has_hospital_alarm:
+        # 최근 2개월 연속 확인 예시로 강화
+        recent = hospital_df[hospital_df['경보'] == True].sort_values('ds').tail(2)
+        if len(recent) == 2 and (recent['ds'].diff().dt.days.iloc[-1] <= 40):
+            level = 5
+        else:
+            level = 3
+    elif has_community_alarm:
+        level = 2
     else:
-        return 1, "Green"
+        level = 1
+
+    return level
 
 # 게이지 차트 함수
 def draw_gauge(level, color):
@@ -223,8 +221,6 @@ def draw_gauge(level, color):
         }
     ))
     st.plotly_chart(fig, use_container_width=True)
-
-
 
 #  화면 영역 설정
 left_panel, center_panel, right_panel = st.columns([1.1, 1.7, 1.7])
