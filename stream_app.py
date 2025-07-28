@@ -123,18 +123,26 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
-    current_date = pd.to_datetime('2023-08-01')  # 또는 df['ds'].max()
-    file_name = title.replace(" ", "").replace("이상치 예측", "")
-    y_label = "예측값"
-    
-    # 병원 or 지역사회에 따라 라벨 추정
-    if "표본감시" in title:
-        y_label = "표본감시 발생 건수"
-    elif "CRE" in title:
-        y_label = "CRE 발생 건수"
-    
-    plot_graph(df, title_text=title, y_label=y_label, current_date=current_date)
-    render_alarms([(title, df)], current_date=current_date)
+    outlier_label_added = False  # 💡 여기서 초기화
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(df['ds'], df['y'], label='실제 예측값', color='blue')
+    plt.plot(df['ds'], df['yhat'], label='One-step 예측', color='red', linestyle='--')
+
+    for i in range(len(df)):
+        if df.loc[i, '경보']:  # 이상치일 경우
+            if not outlier_label_added:
+                plt.plot(df.loc[i, 'ds'], df.loc[i, 'y'], 'p', color='gold', label='이상치')
+                outlier_label_added = True
+            else:
+                plt.plot(df.loc[i, 'ds'], df.loc[i, 'y'], 'p', color='gold')
+
+    plt.legend(fontsize=10)
+    plt.title(title, fontsize=14)
+    plt.xlabel("날짜")
+    plt.ylabel("예측값")
+    plt.tight_layout()
+    st.pyplot(plt)
 
 # 5. 경보 탑지 함수
 def render_alarms(alarm_records, current_date):
@@ -256,12 +264,12 @@ left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
 # 👉 드롭다운 선택 (가운데/오른쪽)
 with center_panel:
-    st.markdown("###  병원 감염 선택")
-    hospital_choice = st.selectbox(["선택"] + list(hospital_file_map.keys()))
+    st.markdown("### 🏥 병원 감염 선택")
+    hospital_choice = st.selectbox("병원 감염을 선택하세요", ["선택"] + list(hospital_file_map.keys()))
 
 with right_panel:
-    st.markdown("###  지역사회 감염 선택")
-    community_choice = st.selectbox(["선택"] + list(community_file_map.keys()))
+    st.markdown("### 🌐 지역사회 감염 선택")
+    community_choice = st.selectbox("지역사회 감염을 선택하세요", ["선택"] + list(community_file_map.keys()))
 
 # 👉 병원 및 지역사회 데이터 로딩
 hospital_df = None
