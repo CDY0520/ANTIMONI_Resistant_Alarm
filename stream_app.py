@@ -79,7 +79,7 @@ def plot_graph(df, title_text, y_label, current_date):
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
     # 이상치 (경보) 시각화
-    outlier_label_added = False
+    ax.plot([], [], marker='*', color='#FFC107', markersize=6, linestyle='None', label='이상치')
     if '경보' in df.columns:
         try:
             df['경보'] = df['경보'].apply(
@@ -116,7 +116,7 @@ def plot_graph(df, title_text, y_label, current_date):
     ordered_labels = [lbl for lbl in order if lbl in label_handle_map]
 
     ax.legend(ordered_handles, ordered_labels,
-              fontsize=3, markerscale=0.7, loc='upper left', frameon=False, prop=fontprop)
+              fontsize=2, markerscale=0.6, loc='upper left', frameon=False, prop=fontprop)
 
     st.pyplot(fig)
 
@@ -305,7 +305,7 @@ with left_panel:
         st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
 
     # 경보 레벨 설명 표
-    st.markdown("###경보 레벨 체계 (5단계)")
+    st.markdown("### 경보 레벨 체계 (5단계)")
     level_rows = [
         ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
         ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
@@ -321,7 +321,7 @@ with left_panel:
         font-size: 14px;
     }
     .custom-table td {
-        border: 1px solid #ddd;
+        border: none;
         padding: 6px;
     }
     </style>
