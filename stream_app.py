@@ -51,6 +51,9 @@ community_file_map = {
     "표본감시(충북)": ("표본감시(충북)_경보결과.xlsx", "표본감시(충북) 이상치 탐지", "표본감시 발생 건수")
 }
 
+# 10. 현재 날짜 설정
+current_date = pd.to_datetime('2023-08-01')
+
 # 3. 시각화 함수
 def plot_graph(df, title_text, y_label, current_date):
     import matplotlib.patches as mpatches
@@ -300,6 +303,13 @@ def get_alarm_level(hospital_df, community_df, current_date):
     else:
         return 1
 
+
+def get_integrated_alert_level(hospital_df, community_df):
+    level = get_alarm_level(hospital_df, community_df, current_date)
+    color_hex = level_color_map.get(level, "#000000")
+    return level, color_hex
+
+
 # 9. 3분할 레이아웃
 # 3분할 레이아웃 구성
 col1, col2, col3 = st.columns([1.2, 2.5, 2.5])
@@ -379,9 +389,6 @@ with col3:
     # 과거 경보 내역
     st.markdown("### 과거 경보 내역")
     display_alert_table(community_df)
-
-# 10. 현재 날짜 설정
-current_date = pd.to_datetime('2023-08-01')
 
 
 
