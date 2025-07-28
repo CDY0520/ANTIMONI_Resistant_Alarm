@@ -327,9 +327,15 @@ with col2:
     hospital_options = list(hospital_file_map.keys())
     hospital_choice = st.selectbox("병원 감염을 선택하세요", hospital_options, key="hospital_select")
     hospital_df = data_dict[hospital_choice]
+    y_label_hospital = hospital_file_map[hospital_choice][2]
 
     # 병원 감염 그래프
-    plot_graph(hospital_df, title="병원 감염 이상치 예측")
+    plot_graph(
+        df=hospital_df,
+        title_text="병원 감염 이상치 예측",
+        y_label=y_label_hospital,
+        current_date=current_date
+    )
 
     # 현재 경보 메시지
     latest_hosp = hospital_df[hospital_df['ds'] == hospital_df['ds'].max()]
@@ -349,9 +355,15 @@ with col3:
     community_options = list(community_file_map.keys())
     community_choice = st.selectbox("지역사회 감염을 선택하세요", community_options, key="community_select")
     community_df = data_dict[community_choice]
+    y_label_community = community_file_map[community_choice][2]
 
-    # 지역감염 그래프
-    plot_graph(community_df, title="지역사회 감염 이상치 예측")
+    # 지역사회 감염 그래프
+    plot_graph(
+        df=community_df,
+        title_text="지역사회 감염 이상치 예측",
+        y_label=y_label_community,
+        current_date=current_date
+    )
 
     # 현재 경보 메시지
     latest_comm = community_df[community_df['ds'] == community_df['ds'].max()]
@@ -390,4 +402,3 @@ with col1:
         table_data.append([level_icons[level_name], desc])
     level_table = pd.DataFrame(table_data, columns=["", "설명"])
     st.dataframe(level_table, use_container_width=True, hide_index=True)
-
