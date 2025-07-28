@@ -56,19 +56,17 @@ community_file_map = {
 def plot_graph(df, title_text, y_label, current_date):
     import matplotlib.patches as mpatches
 
-    # 2023년만 시각화
     df = df[df['ds'].dt.year == 2023]
-
     past_mask = df['ds'] < current_date
     current_mask = df['ds'] == current_date
 
-    fig, ax = plt.subplots(figsize=(6, 2.3))
+    fig, ax = plt.subplots(figsize=(7, 3))
     fig.patch.set_facecolor('#FFF7F0')
 
     # 신뢰구간
     ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'],
                     where=~df['yhat_lower'].isna(),
-                    color='red', alpha=0.2, label='신뢰구간 (95%)')
+                    color='red', alpha=0.2, label='신뢰구간(95%)')
 
     # 실제값
     ax.plot(df.loc[past_mask | current_mask, 'ds'],
@@ -81,28 +79,27 @@ def plot_graph(df, title_text, y_label, current_date):
             marker='o', linestyle='--', color='red',
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
-    # 이상치 (경보) 시각화
-    # 항상 범례에 나타내기 위한 빈 플롯
-    ax.plot([], [], marker='*', color='#FFC107', markersize=6, linestyle='None', label='이상치')
+    # 이상치
+    ax.plot([], [], marker='*', color='#FFC107', markersize=6, linestyle='None', label='이상치')  # 범례 고정용
+    outlier_label_added = False
 
     try:
-        df['경보'] = df['경보'].apply(
-            lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False
-        )
+        df['경보'] = df['경보'].apply(lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False)
         outlier_rows = df[df['경보']]
         for _, row in outlier_rows.iterrows():
             edge_color = 'black' if row['ds'] == current_date else 'gray'
-            ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
-                    markeredgecolor=edge_color,
-                    label='이상치' if not outlier_label_added else None)
-            outlier_label_added = True
+            if not outlier_label_added:
+                ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
+                        markeredgecolor=edge_color, markeredgewidth=0.8, label='이상치')
+                outlier_label_added = True
+            else:
+                ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
+                        markeredgecolor=edge_color, markeredgewidth=0.8)
     except Exception as e:
         st.error(f"⚠️ 이상치 시각화 오류: {e}")
 
-    # 예측 시작선
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
 
-    # 축, 폰트, 스타일
     ax.set_title(title_text, fontsize=7, fontproperties=fontprop)
     ax.set_xlabel("날짜", fontsize=6, fontproperties=fontprop)
     ax.set_ylabel(y_label, fontsize=6, fontproperties=fontprop)
@@ -112,7 +109,7 @@ def plot_graph(df, title_text, y_label, current_date):
     plt.xticks(rotation=45)
     ax.grid(True, linestyle='--', linewidth=0.4, color='#CCCCCC')
 
-    # 범례 구성
+    # 범례 정렬
     handles, labels = ax.get_legend_handles_labels()
     label_handle_map = dict(zip(labels, handles))
     order = ['신뢰구간(95%)', f'실제 {y_label}', 'One-step 예측', '이상치', '예측 시작']
@@ -120,7 +117,7 @@ def plot_graph(df, title_text, y_label, current_date):
     ordered_labels = [lbl for lbl in order if lbl in label_handle_map]
 
     ax.legend(ordered_handles, ordered_labels,
-              fontsize=1, markerscale=0.6, loc='upper left', frameon=False, prop=fontprop)
+              fontsize=6, markerscale=0.6, loc='upper left', frameon=False, prop=fontprop)
 
     st.pyplot(fig)
 
