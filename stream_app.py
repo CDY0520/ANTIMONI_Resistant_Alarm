@@ -203,16 +203,16 @@ def draw_gauge(level, color):
         mode="gauge+number",
         value=level,
         domain={'x': [0, 1], 'y': [0, 1]},
-        title={'text': "경보 레벨", 'font': {'size': 16}},
+        title={'text': "현재 경보 레벨", 'font': {'size': 16}},
         gauge={
-            'axis': {'range': [1, 5], 'tickmode': 'linear', 'dtick': 1},
+            'axis': {'range': [1, 6], 'tickmode': 'linear', 'dtick': 1},
             'bar': {'color': color},
             'steps': [
                 {'range': [1, 2], 'color': "#00cc96"},
                 {'range': [2, 3], 'color': "#636efa"},
                 {'range': [3, 4], 'color': "#f4c430"},
                 {'range': [4, 5], 'color': "#ffa15a"},
-                {'range': [5, 5.1], 'color': "#ef553b"},
+                {'range': [5, 6], 'color': "#ef553b"},
             ],
         }
     ))
