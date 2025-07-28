@@ -28,13 +28,16 @@ else:
 # 페이지 설정
 st.set_page_config(layout="wide")
 
-# 상단 제목 영역 (회색 배경 + 흰 글씨)
-st.markdown("""
-    <div style='background-color: #4D4D4D; padding: 20px; border-radius: 8px;'>
-        <h1 style='color: white; text-align: center; margin: 0;'> 이상치 탐지 모니터링</h1>
-        <p style='color: white; text-align: center; font-size: 16px;'>예측 결과 및 이상치 경보를 확인하세요.</p>
+# 제목 박스: 사용자 정의 배경색 + 중앙 정렬 텍스트
+st.markdown(
+    """
+    <div style="background-color: #2B3F73; padding: 20px; border-radius: 10px; text-align: center;">
+        <h1 style="color: white; font-family: 'Noto Sans KR', sans-serif;">이상치 탐지 모니터링</h1>
+        <p style="color: white; font-size: 18px;">예측 결과 및 이상치 경보를 확인하세요.</p>
     </div>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
 # 2. 파일 매핑
 hospital_file_map = {
