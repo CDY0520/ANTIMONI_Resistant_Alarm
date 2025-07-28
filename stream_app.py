@@ -28,6 +28,8 @@ st.set_page_config(layout="wide")
 st.title("📈 이상치 탐지 모니터링")
 st.write("예측 결과 및 이상치 경보를 확인하세요.")
 
+st.write("📌 현재 컬럼:", df.columns.tolist())
+
 # 드롭다운 메뉴
 col1, col2 = st.columns(2)
 with col1:
@@ -74,17 +76,20 @@ def plot_graph(df, title_text, y_label, current_date):
             marker='o', linestyle='--', color='red',
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
-    # 이상치 처리
+    # 이상치 (경보) 시각화
     outlier_label_added = False
     if '경보' in df.columns:
-        df['경보'] = df['경보'].fillna(False)
-        outlier_rows = df[df['경보']]
-        for _, row in outlier_rows.iterrows():
-            edge_color = 'black' if row['ds'] == current_date else 'gray'
-            ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
-                    markeredgecolor=edge_color,
-                    label='이상치' if not outlier_label_added else None)
-            outlier_label_added = True
+        try:
+            outlier_rows = df[df['경보'].fillna(False)]
+            for _, row in outlier_rows.iterrows():
+                edge_color = 'black' if row['ds'] == current_date else 'gray'
+                ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
+                        markeredgecolor=edge_color,
+                        label='이상치' if not outlier_label_added else None)
+                outlier_label_added = True
+        except Exception as e:
+            st.warning(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
+
 
     # 예측 시작선
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
