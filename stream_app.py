@@ -352,12 +352,10 @@ with left_panel:
         border-collapse: collapse;
         width: 100%;
         font-size: 14px;
-        font-family: 'Noto Sans KR', sans-serif;
     }
     .custom-table td {
+        border: none;
         padding: 6px;
-        border-bottom: 1px solid #ddd;
-        background-color: #FAFAFA;
     }
     </style>
     <table class="custom-table">
