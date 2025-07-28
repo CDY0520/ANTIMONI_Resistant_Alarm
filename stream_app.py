@@ -238,14 +238,19 @@ with left_panel:
     st.markdown("### 🛎️ 통합 경보")
 
     # 파일 존재 시 로드 및 처리
-    if os.path.exists(hospital_file_map) and os.path.exists(community_file_map):
-        hospital_df = pd.read_excel(hospital_file_map)
-        hospital_df['ds'] = pd.to_datetime(hospital_df['ds'])
-        hospital_df['경보'] = hospital_df['경보'].astype(str).str.upper().isin(['TRUE'])
+    if hospital_choice != "선택":
+        file, title, ylabel = hospital_file_map[hospital_choice]
+        if os.path.exists(file):
+            # 파일 처리
+        else:
+            st.warning(f"⚠️ [{file}] 파일이 없습니다.")
 
-        community_df = pd.read_excel(community_file_map)
-        community_df['ds'] = pd.to_datetime(community_df['ds'])
-        community_df['경보'] = community_df['경보'].astype(str).str.upper().isin(['TRUE'])
+    if community_choice != "선택":
+        file, title, ylabel = community_file_map[community_choice]
+        if os.path.exists(file):
+            # 파일 처리
+        else:
+            st.warning(f"⚠️ [{file}] 파일이 없습니다.")
 
         # 통합 경보 계산
         level = get_alarm_level(hospital_df, community_df, current_date)
