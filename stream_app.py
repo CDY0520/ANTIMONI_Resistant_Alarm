@@ -309,9 +309,26 @@ def get_integrated_alert_level(hospital_df, community_df, current_date):
     color_hex = level_color_map.get(level, "#000000")
     return level, color_hex
 
-
-
 # 10. 3분할 레이아웃
+
+# 실제 데이터 파일 읽어오기 및 data_dict 정의
+data_dict = {}
+
+# 병원 데이터 로드
+for name, (filename, _, _) in hospital_file_map.items():
+    df = pd.read_excel(os.path.join("data", filename))  # 경로 조정 필요
+    df["ds"] = pd.to_datetime(df["ds"])
+    data_dict[name] = df
+
+# 지역사회 데이터 로드
+for name, (filename, _, _) in community_file_map.items():
+    df = pd.read_excel(os.path.join("data", filename))  # 경로 조정 필요
+    df["ds"] = pd.to_datetime(df["ds"])
+    data_dict[name] = df
+
+# 선택 옵션 생성
+hospital_options = list(hospital_file_map.keys())
+community_options = list(community_file_map.keys())
 col1, col2, col3 = st.columns([1.2, 2.5, 2.5])
 
 # ------------------------
