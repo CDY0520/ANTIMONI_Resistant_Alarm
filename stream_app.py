@@ -255,50 +255,6 @@ def get_alarm_level(hospital_df, community_df, current_date):
 # 9. 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
-# 👉 왼쪽: 통합 경보 영역
-with left_panel:
-    st.markdown("### 🔔 통합 경보")
-
-    # 통합 경보 레벨 계산 및 게이지 표시
-    if hospital_df is not None and community_df is not None:
-        current_date = hospital_df['ds'].max()
-        level = get_alarm_level(hospital_df, community_df, current_date)
-        level_color_map = {
-            1: 'green', 2: 'blue', 3: 'yellow', 4: 'orange', 5: 'red'
-        }
-        color = level_color_map[level]
-
-        draw_gauge(level, color)
-        st.markdown(f"#### 현재 레벨: {level}단계 ({color})")
-    else:
-        st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
-
-    # 경보 레벨 설명 표
-    st.markdown("### 경보 레벨 체계 (5단계)")
-    level_rows = [
-        ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
-        ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
-        ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
-        ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
-        ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
-    ]
-    st.markdown("""
-    <style>
-    .custom-table {
-        border-collapse: collapse;
-        width: 100%;
-        font-size: 14px;
-    }
-    .custom-table td {
-        border: none;
-        padding: 6px;
-    }
-    </style>
-    <table class="custom-table">
-    """ + "".join([
-        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
-    ]) + "</table>", unsafe_allow_html=True)
-
 # 드롭다운 선택 초기화
 hospital_choice = st.selectbox("병원 감염 선택", ["선택"] + list(hospital_file_map.keys()))
 community_choice = st.selectbox("지역사회 감염 선택", ["선택"] + list(community_file_map.keys()))
@@ -344,14 +300,59 @@ if hospital_choice != "선택" and community_choice != "선택":
 else:
     st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
 
-# 병원 예측 그래프 표시
+# 👉 왼쪽: 통합 경보 영역
+with left_panel:
+    st.markdown("### 🔔 통합 경보")
+
+    # 통합 경보 레벨 계산 및 게이지 표시
+    if hospital_df is not None and community_df is not None:
+        current_date = hospital_df['ds'].max()
+        level = get_alarm_level(hospital_df, community_df, current_date)
+        level_color_map = {
+            1: 'green', 2: 'blue', 3: 'yellow', 4: 'orange', 5: 'red'
+        }
+        color = level_color_map[level]
+
+        draw_gauge(level, color)
+        st.markdown(f"#### 현재 레벨: {level}단계 ({color})")
+    else:
+        st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
+
+    # 경보 레벨 설명 표
+    st.markdown("### 경보 레벨 체계 (5단계)")
+    level_rows = [
+        ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
+        ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
+        ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
+        ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
+        ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
+    ]
+    st.markdown("""
+    <style>
+    .custom-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
+    }
+    .custom-table td {
+        border: none;
+        padding: 6px;
+    }
+    </style>
+    <table class="custom-table">
+    """ + "".join([
+        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
+    ]) + "</table>", unsafe_allow_html=True)
+
+
+# 👉 가운데: 병원 예측 그래프 표시
 with center_panel:
     if hospital_df is not None:
         visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
     else:
         st.info("병원 감염 데이터를 선택하세요.")
 
-# 지역사회 예측 그래프 표시
+# 👉 오른쪽: 지역사회 예측 그래프 표시
 with right_panel:
     if community_df is not None:
         visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
