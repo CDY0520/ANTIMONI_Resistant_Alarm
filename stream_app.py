@@ -230,67 +230,62 @@ level_color_map = {
 }
 
 # 8. 게이지 차트 함수
-def draw_gauge(level, color_hex=None):
-    # 값 체크
-    if level < 1 or level > 5:
-        st.error("경보 레벨은 1~5 사이여야 합니다.")
-        return
+def draw_gauge(level, color_hex):
+    """
+    통합 경보 레벨을 반원형 게이지로 시각화합니다.
+    """
+  
+    fig, ax = plt.subplots(figsize=(6, 3), subplot_kw={'projection': 'polar'})
 
-    # 색상 설정 (사용자가 따로 color_hex를 넘기지 않아도 내부에서 결정)
-    level_colors = ['#00cc96', '#636efa', '#f4c430', '#ffa15a', '#ef553b']
-    level_labels = ['1', '2', '3', '4', '5']
+    # 레벨 및 색상 정의
+    levels = [1, 2, 3, 4, 5]
+    colors = ["#1abc9c", "#5b6ee1", "#f1c40f", "#f39c12", "#e74c3c"]
+    labels = [str(lvl) for lvl in levels]
 
     # 반원 각도 설정 (180도 반원, 위쪽)
     start_angle = -90
     end_angle = 90
     theta = np.linspace(np.radians(start_angle), np.radians(end_angle), len(levels) + 1)
 
-    # 반원 게이지 구성 (go.Pie)
-    fig = go.Figure()
+    # 각 경보 단계 구간 그리기
+    for i in range(len(levels)):
+        ax.barh(
+            y=1,
+            width=theta[i + 1] - theta[i],
+            left=theta[i],
+            height=0.5,
+            color=colors[i],
+            edgecolor='white'
+        )
+        angle_text = (theta[i] + theta[i + 1]) / 2
+        ax.text(
+            angle_text,
+            1.25,
+            labels[i],
+            ha='center',
+            va='center',
+            fontsize=14,
+            color='black'
+        )
 
-    fig.add_trace(go.Pie(
-        values=[20] * 5 + [100],  # 5개 구간 + 투명한 아래쪽
-        rotation=180,
-        hole=0.6,
-        direction='clockwise',
-        text=level_labels + [''],
-        textinfo='text',
-        textposition='inside',
-        marker_colors=level_colors + ['rgba(0,0,0,0)'],
-        hoverinfo='skip',
-        showlegend=False
-    ))
-
-    # 바늘 좌표 계산
-    angle_deg = 180 - (level - 1) * 36 - 18  # 중앙 기준 각도
+    # 바늘 위치 계산
+    angle_per_level = (end_angle - start_angle) / 5
+    angle_deg = start_angle + (level - 0.5) * angle_per_level
     angle_rad = np.radians(angle_deg)
-    x = 0.5 + 0.4 * np.cos(angle_rad)
-    y = 0.5 + 0.4 * np.sin(angle_rad)
-
-    # 바늘 추가
-    fig.add_shape(type='line',
-        x0=0.5, y0=0.5, x1=x, y1=y,
-        line=dict(color='black', width=4)
-    )
 
     # 바늘 (흰색)
     ax.plot([angle_rad, angle_rad], [0, 1], color='white', linewidth=4)
 
-    # 중앙 숫자 표시
-    fig.add_annotation(
-        text=f"<b>{level}</b>", x=0.5, y=0.5,
-        font=dict(size=36, color='white', family='Noto Sans KR'),
-        showarrow=False
-    )
+    # 중앙 레벨 숫자
+    ax.text(0, -0.3, str(level), fontsize=32, fontweight='bold', ha='center', color='white')
 
-    fig.update_layout(
-        height=300,
-        margin=dict(t=30, b=0, l=10, r=10),
-        paper_bgcolor='#0E1117',
-        plot_bgcolor='#0E1117'
-    )
+    # 스타일 설정
+    ax.set_theta_zero_location("N")
+    ax.set_theta_direction(-1)
+    ax.set_rlim(0, 1.5)
+    ax.axis("off")
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.pyplot(fig)
 
 # 9. 경보 레벨 판단 함수
 def get_alarm_level(hospital_df, community_df, current_date):
