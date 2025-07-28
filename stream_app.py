@@ -31,12 +31,10 @@ st.set_page_config(layout="wide")
 # 상단 제목 영역 (회색 배경 + 흰 글씨)
 st.markdown("""
     <div style='background-color: #4D4D4D; padding: 20px; border-radius: 8px;'>
-        <h1 style='color: white; text-align: center; margin: 0;'>📊 이상치 탐지 모니터링</h1>
+        <h1 style='color: white; text-align: center; margin: 0;'> 이상치 탐지 모니터링</h1>
         <p style='color: white; text-align: center; font-size: 16px;'>예측 결과 및 이상치 경보를 확인하세요.</p>
     </div>
 """, unsafe_allow_html=True)
-
-st.write("예측 결과 및 이상치 경보를 확인하세요.")
 
 # 드롭다운 메뉴
 st.markdown("")
@@ -49,15 +47,15 @@ with col2:
 
 # 파일 매핑
 hospital_file_map = {
-    "CRE(충북대병원)": ("CRE(충북대)_경보결과.xlsx", "CRE(충북대병원) 이상치 탐지 (One-step 예측 기반)", "CRE 발생 건수"),
-    "표본감시(충북대병원)": ("표본감시(충북대)_경보결과.xlsx", "표본감시(충북대병원) 이상치 탐지 (One-step 예측 기반)", "표본감시 발생 건수")
+    "CRE(충북대병원)": ("CRE(충북대)_경보결과.xlsx", "CRE(충북대병원) 이상치 탐지", "CRE 발생 건수"),
+    "표본감시(충북대병원)": ("표본감시(충북대)_경보결과.xlsx", "표본감시(충북대병원) 이상치 탐지", "표본감시 발생 건수")
 }
 
 community_file_map = {
-    "CRE(전국)": ("CRE(전국)_경보결과.xlsx", "CRE(전국) 이상치 탐지 (One-step 예측 기반)", "CRE 발생 건수"),
-    "CRE(충북)": ("CRE(충북)_경보결과.xlsx", "CRE(충북) 이상치 탐지 (One-step 예측 기반)", "CRE 발생 건수"),
-    "표본감시(전국)": ("표본감시(전국)_경보결과.xlsx", "표본감시(전국) 이상치 탐지 (One-step 예측 기반)", "표본감시 발생 건수"),
-    "표본감시(충북)": ("표본감시(충북)_경보결과.xlsx", "표본감시(충북) 이상치 탐지 (One-step 예측 기반)", "표본감시 발생 건수")
+    "CRE(전국)": ("CRE(전국)_경보결과.xlsx", "CRE(전국) 이상치 탐지", "CRE 발생 건수"),
+    "CRE(충북)": ("CRE(충북)_경보결과.xlsx", "CRE(충북) 이상치 탐지", "CRE 발생 건수"),
+    "표본감시(전국)": ("표본감시(전국)_경보결과.xlsx", "표본감시(전국) 이상치 탐지", "표본감시 발생 건수"),
+    "표본감시(충북)": ("표본감시(충북)_경보결과.xlsx", "표본감시(충북) 이상치 탐지", "표본감시 발생 건수")
 }
 
 # 시각화 함수
@@ -123,12 +121,12 @@ def plot_graph(df, title_text, y_label, current_date):
     # 범례 구성
     handles, labels = ax.get_legend_handles_labels()
     label_handle_map = dict(zip(labels, handles))
-    order = ['신뢰구간 (95%)', f'실제 {y_label}', 'One-step 예측', '이상치', '예측 시작']
+    order = ['신뢰구간(95%)', f'실제 {y_label}', 'One-step 예측', '이상치', '예측 시작']
     ordered_handles = [label_handle_map[lbl] for lbl in order if lbl in label_handle_map]
     ordered_labels = [lbl for lbl in order if lbl in label_handle_map]
 
     ax.legend(ordered_handles, ordered_labels,
-              fontsize=5, markerscale=0.7, loc='upper left', frameon=False, prop=fontprop)
+              fontsize=3, markerscale=0.7, loc='upper left', frameon=False, prop=fontprop)
 
     st.pyplot(fig)
 
