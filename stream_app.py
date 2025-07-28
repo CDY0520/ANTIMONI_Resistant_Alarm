@@ -144,17 +144,15 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 6. 경보 메시지 관련 함수
 # 경보 탑지 함수
-def render_alert_message(latest_df, dataset_label="병원 감염"):
+def render_alert_message(latest_df, current_date, dataset_label="병원 감염"):
     """
     이상치 발생 여부에 따라 경보 메시지 출력.
     latest_df: 최신 월 데이터 (df.tail(1) 또는 마지막 달 필터된 df)
+    current_date: 기준이 되는 현재 날짜
     dataset_label: "병원 감염" / "지역사회 감염"
     """
-    # 경보 컬럼 boolean 정리
-    latest_df['경보'] = latest_df['경보'].apply(lambda x: str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'])
-
     row = latest_df.iloc[0]
-    current_date = row['ds'].strftime("%Y-%m")
+    current_date_str = pd.to_datetime(current_date).strftime("%Y-%m")
 
     if row['경보']:  # 이상치 발생한 경우
         current_val = int(row['y'])
@@ -163,7 +161,7 @@ def render_alert_message(latest_df, dataset_label="병원 감염"):
 
         message_md = f"""
         <div style="background-color:#223D77; padding:10px; border-radius:8px;">
-            <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date}] {dataset_label} 이상치 발생</span><br>
+            <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] {dataset_label} 이상치 발생</span><br>
             <span style="color:black;">▶ 현재값 ({current_val})이 예측 상한값 ({upper_val})을 초과하였습니다.</span><br>
             <span style="color:black;">▶ {interpretation}</span>
         </div>
@@ -173,7 +171,7 @@ def render_alert_message(latest_df, dataset_label="병원 감염"):
     else:  # 이상치 없음
         message_md = f"""
         <div style="background-color:#223D77; padding:10px; border-radius:8px;">
-            <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span>
+            <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span>
         </div>
         """
         st.markdown(message_md, unsafe_allow_html=True)
