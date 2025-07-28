@@ -123,29 +123,50 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
-    plt.figure(figsize=(10, 5))
-    plt.plot(df['ds'], df['y'], label='실제 예측값', marker='o', color='royalblue')
-    plt.plot(df['ds'], df['yhat1'], label='One-step 예측', linestyle='--', color='red')
-    plt.fill_between(df['ds'], df['yhat1_lower'], df['yhat1_upper'], color='red', alpha=0.2)
+    import matplotlib.pyplot as plt
+    import pandas as pd
 
-    # 예측 시작선 표시
-    if '예측시작' in df.columns:
-        plt.axvline(pd.to_datetime(df['예측시작'].dropna().values[0]), linestyle='--', color='gray', label='예측 시작')
+    fig, ax = plt.subplots(figsize=(7, 3))
+    fig.patch.set_facecolor('#FFF7F0')
 
-    # 이상치 별표 표시 (★) - outlier_label_added 미리 정의
+    # 라인 플롯
+    ax.plot(df['ds'], df['y'], label='실제 예측값', marker='o', color='royalblue', linewidth=1, markersize=3)
+    ax.plot(df['ds'], df['yhat1'], label='One-step 예측', linestyle='--', color='red', linewidth=1, markersize=3)
+
+    # 신뢰구간
+    ax.fill_between(df['ds'], df['yhat1_lower'], df['yhat1_upper'],
+                    where=~df['yhat1_lower'].isna(),
+                    color='red', alpha=0.2, label='신뢰구간 (95%)')
+
+    # 예측 시작선
+    if '예측시작' in df.columns and df['예측시작'].notna().any():
+        try:
+            start_date = pd.to_datetime(df['예측시작'].dropna().values[0])
+            ax.axvline(start_date, linestyle='--', color='gray', linewidth=0.8, label='예측 시작')
+        except Exception as e:
+            st.warning(f"예측시작 처리 오류: {e}")
+
+    # 이상치 별표
     outlier_label_added = False
-    for i, row in df.iterrows():
-        if row.get('경보', False):
-            label = '이상치' if not outlier_label_added else ""
-            plt.plot(row['ds'], row['y'], marker='*', color='gold', markersize=12, label=label)
+    if '경보' in df.columns:
+        df['경보'] = df['경보'].apply(lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False)
+        for _, row in df[df['경보']].iterrows():
+            label = '이상치' if not outlier_label_added else None
+            ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=10,
+                    markeredgecolor='black', markeredgewidth=0.6, linestyle='None', label=label)
             outlier_label_added = True
 
-    plt.legend(fontsize=9)
-    plt.title(title)
-    plt.xlabel("날짜")
-    plt.ylabel("예측값")
-    plt.grid(True)
-    st.pyplot(plt)
+    # 스타일 및 라벨
+    ax.set_title(title, fontsize=8, fontproperties=fontprop)
+    ax.set_xlabel("날짜", fontsize=7, fontproperties=fontprop)
+    ax.set_ylabel("예측값", fontsize=7, fontproperties=fontprop)
+    ax.tick_params(axis='both', labelsize=6)
+    ax.grid(True, linestyle='--', linewidth=0.5, color='#CCCCCC')
+
+    # 범례
+    ax.legend(fontsize=6, loc='upper left', frameon=False, prop=fontprop)
+
+    st.pyplot(fig)
 
 # 5. 경보 탑지 함수
 def render_alarms(df, panel_title="경보 내역"):
@@ -154,21 +175,41 @@ def render_alarms(df, panel_title="경보 내역"):
         st.info("📌 현재 경보가 없습니다.")
         return
 
-    # '예측상한' 소수점 둘째 자리로 포맷
     df = df.copy()
-    df['예측상한'] = df['예측상한'].apply(lambda x: f"{x:.2f}")
 
-    # HTML 테이블 가운데 정렬 및 스타일링
+    # 날짜 및 수치 포맷
+    if '날짜' in df.columns:
+        df['날짜'] = pd.to_datetime(df['날짜']).dt.strftime('%Y-%m-%d')
+
+    for col in ['예측값', '예측하한', '예측상한', '실제값']:
+        if col in df.columns:
+            df[col] = df[col].apply(lambda x: f"{x:.2f}" if pd.notnull(x) else "")
+
+    # 컬럼 순서 명시 (원하는 컬럼으로 조정)
+    expected_cols = ['날짜', '예측값', '예측하한', '예측상한', '실제값', '경보해석']
+    df = df[[col for col in expected_cols if col in df.columns]]
+
+    # 커스텀 테이블 스타일
     st.markdown("""
     <style>
     .custom-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 14px;
+        font-size: 13px;
+        font-family: 'Noto Sans KR', sans-serif;
+        background-color: #F9FAFB;
+        border: 1px solid #DDD;
     }
-    .custom-table th, .custom-table td {
+    .custom-table th {
+        background-color: #2B3F73;
+        color: white;
+        padding: 6px;
+        border: 1px solid #DDD;
+    }
+    .custom-table td {
         text-align: center;
-        padding: 8px;
+        padding: 6px;
+        border: 1px solid #DDD;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -177,57 +218,73 @@ def render_alarms(df, panel_title="경보 내역"):
 
 # 6. 경보 레벨 색상 매핑
 level_color_map = {
-    1: "Green",
-    2: "Blue",
-    3: "Yellow",
-    4: "Orange",
-    5: "Red"
+    1: "#00cc96",  # Green
+    2: "#636efa",  # Blue
+    3: "#f4c430",  # Yellow
+    4: "#ffa15a",  # Orange
+    5: "#ef553b"   # Red
 }
 
 # 7. 게이지 차트 함수
-def draw_gauge(level, color):
+def draw_gauge(level, color_hex):
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=level,
         domain={'x': [0, 1], 'y': [0, 1]},
-        title={'text': "현재 경보 레벨", 'font': {'size': 16}},
+        title={
+            'text': "현재 경보 레벨",
+            'font': {'size': 16, 'color': '#2B3F73', 'family': 'Noto Sans KR'}
+        },
         gauge={
-            'axis': {'range': [1, 6], 'tickmode': 'linear', 'dtick': 1},
-            'bar': {'color': color},
+            'axis': {'range': [1, 5], 'tickmode': 'linear', 'dtick': 1, 'tickfont': {'size': 12}},
+            'bar': {'color': color_hex},
             'steps': [
-                {'range': [1, 2], 'color': "#00cc96"},
-                {'range': [2, 3], 'color': "#636efa"},
-                {'range': [3, 4], 'color': "#f4c430"},
-                {'range': [4, 5], 'color': "#ffa15a"},
-                {'range': [5, 6], 'color': "#ef553b"},
+                {'range': [1, 2], 'color': '#00cc96'},   # Green
+                {'range': [2, 3], 'color': '#636efa'},   # Blue
+                {'range': [3, 4], 'color': '#f4c430'},   # Yellow
+                {'range': [4, 5], 'color': '#ffa15a'},   # Orange
             ],
+            'threshold': {
+                'line': {'color': color_hex, 'width': 4},
+                'thickness': 0.75,
+                'value': level
+            }
         }
     ))
-    fig.update_layout(height=220, margin=dict(t=30, b=0, l=10, r=10))
+
+    fig.update_layout(
+        height=220,
+        margin=dict(t=30, b=0, l=10, r=10),
+        font=dict(family='Noto Sans KR', size=13)
+    )
+
     st.plotly_chart(fig, use_container_width=True)
 
 # 8. 경보 레벨 판단 함수
 def get_alarm_level(hospital_df, community_df, current_date):
-    # 현재 날짜 기준으로 가장 최근 월 선택
     current_month = pd.to_datetime(current_date).strftime("%Y-%m")
 
-    # 병원 경보 조건
+    # 병원 데이터 처리
+    hospital_df = hospital_df.copy()
     hospital_df["ds"] = pd.to_datetime(hospital_df["ds"])
     hospital_df["월"] = hospital_df["ds"].dt.strftime("%Y-%m")
-    hosp_alarm = hospital_df[hospital_df["월"] == current_month]["경보"].values
+    hospital_df["경보"] = hospital_df["경보"].apply(lambda x: str(x).strip().upper() in ["TRUE", "1", "1.0", "T"])
 
-    # 지역사회 경보 조건
+    # 지역사회 데이터 처리
+    community_df = community_df.copy()
     community_df["ds"] = pd.to_datetime(community_df["ds"])
     community_df["월"] = community_df["ds"].dt.strftime("%Y-%m")
-    comm_alarm = community_df[community_df["월"] == current_month]["경보"].values
+    community_df["경보"] = community_df["경보"].apply(lambda x: str(x).strip().upper() in ["TRUE", "1", "1.0", "T"])
 
-    hosp_alarm_bool = hosp_alarm[0] if len(hosp_alarm) > 0 else False
-    comm_alarm_bool = comm_alarm[0] if len(comm_alarm) > 0 else False
+    # 현재 월 기준 경보 여부
+    hosp_alarm_bool = hospital_df[hospital_df["월"] == current_month]["경보"].any()
+    comm_alarm_bool = community_df[community_df["월"] == current_month]["경보"].any()
 
-    # 병원 2개월 연속 이상치 확인
+    # 최근 2개월 병원 경보 여부 확인
     recent_hosp = hospital_df.sort_values("ds", ascending=False).head(2)
-    two_month_alarm = (recent_hosp["경보"] == True).sum() >= 2
+    two_month_alarm = recent_hosp["경보"].sum() >= 2
 
+    # 경보 레벨 판정
     if two_month_alarm:
         return 5
     elif hosp_alarm_bool and comm_alarm_bool:
@@ -274,31 +331,9 @@ with left_panel:
     st.markdown("### 🔔 통합 경보")
 
     if hospital_df is not None and community_df is not None:
-        current_date = hospital_df['ds'].max()
+        current_date = hospital_df['ds'].max() if 'ds' in hospital_df.columns else pd.to_datetime("2023-08-01")
         level = get_alarm_level(hospital_df, community_df, current_date)
-
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=level,
-            title={'text': "경보 레벨", 'font': {'size': 20}},
-            gauge={
-                'axis': {'range': [1, 5], 'tickmode': 'array', 'tickvals': [1, 2, 3, 4, 5]},
-                'bar': {'color': "black", 'thickness': 0.3},
-                'steps': [
-                    {'range': [1, 2], 'color': "#00cc96"},  # green
-                    {'range': [2, 3], 'color': "#636efa"},  # blue
-                    {'range': [3, 4], 'color': "#f4c430"},  # yellow
-                    {'range': [4, 5], 'color': "#ffa15a"},  # orange
-                    {'range': [5, 5.1], 'color': "#ef553b"} # red
-                ],
-                'threshold': {
-                    'line': {'color': "black", 'width': 4},
-                    'thickness': 0.75,
-                    'value': level
-                }
-            }
-        ))
-        st.plotly_chart(fig, use_container_width=True)
+        draw_gauge(level, level_color_map[level])
     else:
         st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
 
@@ -317,10 +352,12 @@ with left_panel:
         border-collapse: collapse;
         width: 100%;
         font-size: 14px;
+        font-family: 'Noto Sans KR', sans-serif;
     }
     .custom-table td {
-        border: none;
         padding: 6px;
+        border-bottom: 1px solid #ddd;
+        background-color: #FAFAFA;
     }
     </style>
     <table class="custom-table">
@@ -328,21 +365,21 @@ with left_panel:
         f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
     ]) + "</table>", unsafe_allow_html=True)
 
-# 👉 병원 예측 그래프 표시
+# 👉 병원 예측 그래프 및 경보 내역
 with center_panel:
     st.markdown("### 병원 감염 이상치 예측")
     if hospital_df is not None:
         visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
-        show_alert_table(hospital_alert_df, panel_title="과거 경보 내역")
+        hospital_alert_df = hospital_df[hospital_df["경보"] == True] if "경보" in hospital_df.columns else pd.DataFrame()
+        render_alarms(hospital_alert_df, panel_title="과거 경보 내역")
 
-
-# 👉 지역사회 예측 그래프 표시
+# 👉 지역사회 예측 그래프 및 경보 내역
 with right_panel:
     st.markdown("### 지역사회 감염 이상치 예측")
     if community_df is not None:
         visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
-        show_alert_table(community_alert_df, panel_title="과거 경보 내역")
-
+        community_alert_df = community_df[community_df["경보"] == True] if "경보" in community_df.columns else pd.DataFrame()
+        render_alarms(community_alert_df, panel_title="과거 경보 내역")
 
 # 10. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
