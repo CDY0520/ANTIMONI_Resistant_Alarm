@@ -58,23 +58,27 @@ def plot_graph(df, title_text, y_label, current_date):
     fig, ax = plt.subplots(figsize=(6, 2.3))
     fig.patch.set_facecolor('#FFF7F0')
 
+    # 신뢰구간
     ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'],
                     where=~df['yhat_lower'].isna(),
                     color='red', alpha=0.2, label='신뢰구간 (95%)')
 
+    # 실제값
     ax.plot(df.loc[past_mask | current_mask, 'ds'],
             df.loc[past_mask | current_mask, 'y'],
             marker='o', color='royalblue', linestyle='-',
             markersize=2.5, linewidth=0.8, label=f'실제 {y_label}')
 
+    # 예측값
     ax.plot(df['ds'], df['yhat'],
             marker='o', linestyle='--', color='red',
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
-    # 이상치
+    # ✅ 이상치 처리
     outlier_label_added = False
     if '경보' in df.columns:
-        outlier_rows = df[df['경보'].fillna(False)]
+        df['경보'] = df['경보'].fillna(False)
+        outlier_rows = df[df['경보']]
         for _, row in outlier_rows.iterrows():
             edge_color = 'black' if row['ds'] == current_date else 'gray'
             ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
@@ -82,7 +86,10 @@ def plot_graph(df, title_text, y_label, current_date):
                     label='이상치' if not outlier_label_added else None)
             outlier_label_added = True
 
+    # 예측 시작선
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
+
+    # 축, 폰트, 스타일
     ax.set_title(title_text, fontsize=7, fontproperties=fontprop)
     ax.set_xlabel("날짜", fontsize=6, fontproperties=fontprop)
     ax.set_ylabel(y_label, fontsize=6, fontproperties=fontprop)
@@ -92,6 +99,7 @@ def plot_graph(df, title_text, y_label, current_date):
     plt.xticks(rotation=45)
     ax.grid(True, linestyle='--', linewidth=0.4, color='#CCCCCC')
 
+    # 범례 구성
     handles, labels = ax.get_legend_handles_labels()
     label_handle_map = dict(zip(labels, handles))
     order = ['신뢰구간 (95%)', f'실제 {y_label}', 'One-step 예측', '이상치', '예측 시작']
@@ -103,6 +111,7 @@ def plot_graph(df, title_text, y_label, current_date):
 
     st.pyplot(fig)
 
+
 # 경보 출력
 def render_alarms(alarm_records, current_date):
     st.markdown("### 🛎️ 경보 내역")
@@ -112,6 +121,7 @@ def render_alarms(alarm_records, current_date):
         if '경보' not in raw_df.columns:
             st.warning("⚠️ '경보' 컬럼 없음")
             continue
+        
 
         alarm_df = raw_df[raw_df['경보'].fillna(False)]
         current_alarm = alarm_df[alarm_df['ds'] == current_date]
