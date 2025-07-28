@@ -255,68 +255,64 @@ def get_alarm_level(hospital_df, community_df, current_date):
 # 9. 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
-# 드롭다운 선택 초기화
-hospital_choice = st.selectbox("병원 감염 선택", ["선택"] + list(hospital_file_map.keys()))
-community_choice = st.selectbox("지역사회 감염 선택", ["선택"] + list(community_file_map.keys()))
+# 👉 드롭다운 선택 (가운데/오른쪽)
+with center_panel:
+    hospital_choice = st.selectbox("🏥 병원 감염 선택", ["선택"] + list(hospital_file_map.keys()))
 
-# 선택되었을 때만 gauge 렌더링
-if hospital_choice != "선택" and community_choice != "선택":
-    hospital_df = pd.read_excel(hospital_file_map[hospital_choice][0])
-    community_df = pd.read_excel(community_file_map[community_choice][0])
-    current_date = hospital_df['ds'].max()
-    level = get_alarm_level(hospital_df, community_df, current_date)
+with right_panel:
+    community_choice = st.selectbox("🌐 지역사회 감염 선택", ["선택"] + list(community_file_map.keys()))
 
-    level_color = {
-        1: "#00cc96",  # green
-        2: "#636efa",  # blue
-        3: "#f4c430",  # yellow
-        4: "#ffa15a",  # orange
-        5: "#ef553b"   # red
-    }
+# 👉 병원 및 지역사회 데이터 로딩
+hospital_df = None
+community_df = None
 
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=level,
-        title={'text': "경보 레벨", 'font': {'size': 20}},
-        gauge={
-            'axis': {'range': [1, 5], 'tickmode': 'array', 'tickvals': [1, 2, 3, 4, 5]},
-            'bar': {'color': "black", 'thickness': 0.3},
-            'steps': [
-                {'range': [1, 2], 'color': "#00cc96"},
-                {'range': [2, 3], 'color': "#636efa"},
-                {'range': [3, 4], 'color': "#f4c430"},
-                {'range': [4, 5], 'color': "#ffa15a"},
-                {'range': [5, 5.1], 'color': "#ef553b"}
-            ],
-            'threshold': {
-                'line': {'color': "black", 'width': 4},
-                'thickness': 0.75,
-                'value': level
-            }
-        }
-    ))
-    st.plotly_chart(fig, use_container_width=True)
+if hospital_choice != "선택":
+    file_path = hospital_file_map[hospital_choice][0]
+    if os.path.exists(file_path):
+        hospital_df = pd.read_excel(file_path)
+    else:
+        st.warning(f"❌ 병원 감염 파일({file_path})이 존재하지 않습니다.")
 
-else:
-    st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
+if community_choice != "선택":
+    file_path = community_file_map[community_choice][0]
+    if os.path.exists(file_path):
+        community_df = pd.read_excel(file_path)
+    else:
+        st.warning(f"❌ 지역사회 감염 파일({file_path})이 존재하지 않습니다.")
 
 # 👉 왼쪽: 통합 경보 영역
 with left_panel:
     st.markdown("### 🔔 통합 경보")
 
-    # 통합 경보 레벨 계산 및 게이지 표시
     if hospital_df is not None and community_df is not None:
         current_date = hospital_df['ds'].max()
         level = get_alarm_level(hospital_df, community_df, current_date)
-        level_color_map = {
-            1: 'green', 2: 'blue', 3: 'yellow', 4: 'orange', 5: 'red'
-        }
-        color = level_color_map[level]
 
-        draw_gauge(level, color)
-        st.markdown(f"#### 현재 레벨: {level}단계 ({color})")
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=level,
+            title={'text': "경보 레벨", 'font': {'size': 20}},
+            gauge={
+                'axis': {'range': [1, 5], 'tickmode': 'array', 'tickvals': [1, 2, 3, 4, 5]},
+                'bar': {'color': "black", 'thickness': 0.3},
+                'steps': [
+                    {'range': [1, 2], 'color': "#00cc96"},  # green
+                    {'range': [2, 3], 'color': "#636efa"},  # blue
+                    {'range': [3, 4], 'color': "#f4c430"},  # yellow
+                    {'range': [4, 5], 'color': "#ffa15a"},  # orange
+                    {'range': [5, 5.1], 'color': "#ef553b"} # red
+                ],
+                'threshold': {
+                    'line': {'color': "black", 'width': 4},
+                    'thickness': 0.75,
+                    'value': level
+                }
+            }
+        ))
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown(f"#### 현재 레벨: {level}단계")
     else:
-        st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
+        st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
 
     # 경보 레벨 설명 표
     st.markdown("### 경보 레벨 체계 (5단계)")
@@ -344,15 +340,14 @@ with left_panel:
         f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
     ]) + "</table>", unsafe_allow_html=True)
 
-
-# 👉 가운데: 병원 예측 그래프 표시
+# 👉 병원 예측 그래프 표시
 with center_panel:
     if hospital_df is not None:
         visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
     else:
         st.info("병원 감염 데이터를 선택하세요.")
 
-# 👉 오른쪽: 지역사회 예측 그래프 표시
+# 👉 지역사회 예측 그래프 표시
 with right_panel:
     if community_df is not None:
         visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
