@@ -242,15 +242,15 @@ with left_panel:
         file, title, ylabel = hospital_file_map[hospital_choice]
         if os.path.exists(file):
             # 파일 처리
-        else:
-            st.warning(f"⚠️ [{file}] 파일이 없습니다.")
+    else:
+        st.warning(f"⚠️ [{file}] 파일이 없습니다.")
 
     if community_choice != "선택":
         file, title, ylabel = community_file_map[community_choice]
         if os.path.exists(file):
             # 파일 처리
-        else:
-            st.warning(f"⚠️ [{file}] 파일이 없습니다.")
+    else:
+        st.warning(f"⚠️ [{file}] 파일이 없습니다.")
 
         # 통합 경보 계산
         level = get_alarm_level(hospital_df, community_df, current_date)
