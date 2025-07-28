@@ -1,6 +1,7 @@
 # 0. 라이브러리 임포트 및 설정
 import streamlit as st
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import matplotlib.dates as mdates
