@@ -123,8 +123,20 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
-    import matplotlib.pyplot as plt
-    import pandas as pd
+    # 컬럼명 표준화 (yhat1 → yhat)
+    if 'yhat1' not in df.columns and 'yhat' in df.columns:
+        df['yhat1'] = df['yhat']
+    if 'yhat1_lower' not in df.columns and 'yhat_lower' in df.columns:
+        df['yhat1_lower'] = df['yhat_lower']
+    if 'yhat1_upper' not in df.columns and 'yhat_upper' in df.columns:
+        df['yhat1_upper'] = df['yhat_upper']
+
+    # 필수 컬럼 검사
+    required_cols = ['ds', 'y', 'yhat1', 'yhat1_lower', 'yhat1_upper']
+    for col in required_cols:
+        if col not in df.columns:
+            st.error(f"❌ 필수 컬럼 '{col}'이 누락되었습니다.")
+            return
 
     fig, ax = plt.subplots(figsize=(7, 3))
     fig.patch.set_facecolor('#FFF7F0')
