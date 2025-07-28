@@ -53,24 +53,25 @@ community_file_map = {
 
 # 3. 현재 날짜 설정 및 data_dict 정의
 current_date = pd.to_datetime('2023-08-01')
-
 data_dict = {}
 
 for name, (filename, _, _) in hospital_file_map.items():
-    if os.path.exists(filename):
-        df = pd.read_excel(filename)
+    filepath = os.path.join("data", filename)
+    if os.path.exists(filepath):
+        df = pd.read_excel(filepath)
         df['ds'] = pd.to_datetime(df['ds'])
         data_dict[name] = df
     else:
-        st.warning(f"❌ 보기 파일 누락: {filename}")
+        st.warning(f"❌ 병원 파일 누락: {filename}")
 
 for name, (filename, _, _) in community_file_map.items():
-    if os.path.exists(filename):
-        df = pd.read_excel(filename)
+    filepath = os.path.join("data", filename)
+    if os.path.exists(filepath):
+        df = pd.read_excel(filepath)
         df['ds'] = pd.to_datetime(df['ds'])
         data_dict[name] = df
     else:
-        st.warning(f"❌ 보기 파일 누락: {filename}")
+        st.warning(f"❌ 지역사회 파일 누락: {filename}")
         
 # 4. 시각화 함수
 def plot_graph(df, title_text, y_label, current_date):
