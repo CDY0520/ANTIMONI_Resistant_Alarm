@@ -403,21 +403,19 @@ with left_panel:
         unsafe_allow_html=True
     )
     
-# 👉 병원 예측 그래프 및 경보 내역
+# 👉 병원 예측 그래프 표시
 with center_panel:
-    st.markdown("### 병원 감염 이상치 예측")
     if hospital_df is not None:
         visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
-        hospital_alert_df = hospital_df[hospital_df["경보"] == True] if "경보" in hospital_df.columns else pd.DataFrame()
-        render_alarms(hospital_alert_df, panel_title="과거 경보 내역")
+    else:
+        st.info("병원 감염 데이터를 선택하세요.")
 
-# 👉 지역사회 예측 그래프 및 경보 내역
+# 👉 지역사회 예측 그래프 표시
 with right_panel:
-    st.markdown("### 지역사회 감염 이상치 예측")
     if community_df is not None:
         visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
-        community_alert_df = community_df[community_df["경보"] == True] if "경보" in community_df.columns else pd.DataFrame()
-        render_alarms(community_alert_df, panel_title="과거 경보 내역")
+    else:
+        st.info("지역사회 감염 데이터를 선택하세요.")
 
 # 10. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
