@@ -76,18 +76,23 @@ def plot_graph(df, title_text, y_label, current_date):
 
     # 이상치 (경보) 시각화
     outlier_label_added = False
-    if '경보' in raw_df.columns:
+    for name, raw_df in alarm_records:
+        st.markdown(f"#### 📌 {name}")
+    
+        if '경보' not in raw_df.columns:
+            st.warning("⚠️ '경보' 컬럼 없음")
+            continue
+
         try:
-            # 경보 컬럼 boolean으로 강제 변환
-            raw_df['경보'] = raw_df['경보'].apply(lambda x: True if str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'] else False)
-            # Boolean mask로 필터링
+            # 경보 컬럼 boolean으로 변환
+            raw_df['경보'] = raw_df['경보'].apply(
+                lambda x: True if str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'] else False
+            )
             alarm_df = raw_df[raw_df['경보']]
         except Exception as e:
             st.error(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
             continue
-    else:
-        st.warning("⚠️ '경보' 컬럼 없음")
-        continue
+
 
 
     # 예측 시작선
