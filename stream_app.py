@@ -243,13 +243,11 @@ community_choice = None
 
 # 👉 가운데: 병원 감염 드롭다운 + 예측 그래프
 with center_panel:
-    st.markdown("### 🏥 병원 이상치 예측")
     st.markdown("#### 🏥 병원 감염")
     hospital_choice = st.selectbox("병원 감염 선택", list(hospital_file_map.keys()))
 
 # 👉 오른쪽: 지역사회 감염 드롭다운 + 예측 그래프
 with right_panel:
-    st.markdown("### 🌐 지역사회 이상치 예측")
     st.markdown("#### 🌐 지역사회 감염")
     community_choice = st.selectbox("지역사회 감염 선택", list(community_file_map.keys()))
 
