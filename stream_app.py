@@ -320,64 +320,67 @@ def get_integrated_alert_level(hospital_df, community_df, current_date):
     return level, color_hex
 
 # 10. 3분할 레이아웃
-col1, col2, col3 = st.columns([1.2, 2.5, 2.5])
+col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 
 # ------------------------
-# ✅ col2: 병원 감염 영역 (먼저 hospital_df 정의)
+# ✅ col2: 병원 감염 영역
 # ------------------------
 with col2:
     st.markdown("### 🏥 병원 감염 선택")
 
-    # 감염 종류 선택
-    hospital_options = list(hospital_file_map.keys())
-    hospital_choice = st.selectbox("", hospital_options, key="hospital_select")
-    hospital_df = data_dict[hospital_choice]
-    y_label_hospital = hospital_file_map[hospital_choice][2]
+    # 감염 종류 선택 (선택 옵션 추가)
+    hospital_options = ["선택"] + list(hospital_file_map.keys())
+    hospital_choice = st.selectbox("", hospital_options, index=0, key="hospital_select")
 
-    # 병원 감염 그래프
-    plot_graph(
-        df=hospital_df,
-        title_text="병원 감염 이상치 예측",
-        y_label=y_label_hospital,
-        current_date=current_date
-    )
+    if hospital_choice != "선택":
+        hospital_df = data_dict[hospital_choice]
+        y_label_hospital = hospital_file_map[hospital_choice][2]
 
-    # 현재 경보 메시지
-    latest_hosp = hospital_df[hospital_df['ds'] == hospital_df['ds'].max()]
-    render_alert_message(latest_hosp, current_date, dataset_label="병원 감염")
+        # 병원 감염 그래프
+        plot_graph(
+            df=hospital_df,
+            title_text="병원 감염 이상치 예측",
+            y_label=y_label_hospital,
+            current_date=current_date
+        )
 
-    # 과거 경보 내역
-    st.markdown("### 과거 경보 내역")
-    display_alert_table(hospital_df)
+        # 현재 경보 메시지
+        latest_hosp = hospital_df[hospital_df['ds'] == hospital_df['ds'].max()]
+        render_alert_message(latest_hosp, current_date, dataset_label="병원 감염")
+
+        # 과거 경보 내역
+        st.markdown("### 과거 경보 내역")
+        display_alert_table(hospital_df)
 
 # ------------------------
-# ✅ col3: 지역사회 감염 영역 (community_df 정의)
+# ✅ col3: 지역사회 감염 영역
 # ------------------------
 with col3:
     st.markdown("### 🌐 지역사회 감염 선택")
 
-    # 감염 종류 선택
-    community_options = list(community_file_map.keys())
-    community_choice = st.selectbox("", community_options, key="community_select")
-    community_df = data_dict[community_choice]
-    y_label_community = community_file_map[community_choice][2]
+    community_options = ["선택"] + list(community_file_map.keys())
+    community_choice = st.selectbox("", community_options, index=0, key="community_select")
 
-    # 지역사회 감염 그래프
-    plot_graph(
-        df=community_df,
-        title_text="지역사회 감염 이상치 예측",
-        y_label=y_label_community,
-        current_date=current_date
-    )
+    if community_choice != "선택":
+        community_df = data_dict[community_choice]
+        y_label_community = community_file_map[community_choice][2]
 
-    # 현재 경보 메시지
-    latest_comm = community_df[community_df['ds'] == community_df['ds'].max()]
-    render_alert_message(latest_comm, current_date, dataset_label="지역사회 감염")
+        # 지역사회 감염 그래프
+        plot_graph(
+            df=community_df,
+            title_text="지역사회 감염 이상치 예측",
+            y_label=y_label_community,
+            current_date=current_date
+        )
 
-    # 과거 경보 내역
-    st.markdown("### 과거 경보 내역")
-    display_alert_table(community_df)
+        # 현재 경보 메시지
+        latest_comm = community_df[community_df['ds'] == community_df['ds'].max()]
+        render_alert_message(latest_comm, current_date, dataset_label="지역사회 감염")
 
+        # 과거 경보 내역
+        st.markdown("### 과거 경보 내역")
+        display_alert_table(community_df)
+        
 # ------------------------
 # ✅ col1: 통합 경보 영역 (hospital_df & community_df 정의 이후로 이동)
 # ------------------------
