@@ -79,21 +79,22 @@ def plot_graph(df, title_text, y_label, current_date):
             markersize=2.5, linewidth=0.8, label='One-step 예측')
 
     # 이상치 (경보) 시각화
+    # 항상 범례에 나타내기 위한 빈 플롯
     ax.plot([], [], marker='*', color='#FFC107', markersize=6, linestyle='None', label='이상치')
-    if '경보' in df.columns:
-        try:
-            df['경보'] = df['경보'].apply(
-                lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False
-            )
-            outlier_rows = df[df['경보']]
-            for _, row in outlier_rows.iterrows():
-                edge_color = 'black' if row['ds'] == current_date else 'gray'
-                ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
-                        markeredgecolor=edge_color,
-                        label='이상치' if not outlier_label_added else None)
-                outlier_label_added = True
-        except Exception as e:
-            st.error(f"⚠️ 이상치 시각화 오류: {e}")
+
+    try:
+        df['경보'] = df['경보'].apply(
+            lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False
+        )
+        outlier_rows = df[df['경보']]
+        for _, row in outlier_rows.iterrows():
+            edge_color = 'black' if row['ds'] == current_date else 'gray'
+            ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=6,
+                    markeredgecolor=edge_color,
+                    label='이상치' if not outlier_label_added else None)
+            outlier_label_added = True
+    except Exception as e:
+        st.error(f"⚠️ 이상치 시각화 오류: {e}")
 
     # 예측 시작선
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
