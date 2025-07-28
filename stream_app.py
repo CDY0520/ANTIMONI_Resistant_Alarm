@@ -88,9 +88,6 @@ def plot_graph(df, title_text, y_label, current_date):
         except Exception as e:
             st.warning(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
 
-    st.write("📌 현재 컬럼:", df.columns.tolist())
-
-
     # 예측 시작선
     ax.axvline(current_date, color='gray', linestyle='--', linewidth=0.8, label='예측 시작')
 
