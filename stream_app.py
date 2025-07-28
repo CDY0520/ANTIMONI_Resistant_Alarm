@@ -142,7 +142,8 @@ def plot_graph(df, title_text, y_label, current_date):
 
     st.pyplot(fig)
 
-# 6. 경보 탑지 함수
+# 6. 경보 메시지 관련 함수
+# 경보 탑지 함수
 def render_alert_message(latest_df, dataset_label="병원 감염"):
     """
     이상치 발생 여부에 따라 경보 메시지 출력.
@@ -176,6 +177,35 @@ def render_alert_message(latest_df, dataset_label="병원 감염"):
         </div>
         """
         st.markdown(message_md, unsafe_allow_html=True)
+
+# 과거 경보 테이블 표시 함수
+def display_alert_table(df):
+    """
+    과거 경보 내역을 테이블로 표시합니다.
+    """
+    df = df.copy()
+    df['ds'] = pd.to_datetime(df['ds'])
+    df['월'] = df['ds'].dt.strftime("%Y-%m")
+
+    df['경보'] = df['경보'].apply(lambda x: str(x).strip().upper() in ["TRUE", "1", "1.0", "T"])
+
+    alert_df = df[df['경보']].copy()
+    alert_df = alert_df[['월', 'y', 'yhat_upper']].rename(columns={
+        '월': '경보 발생 시점',
+        'y': '현재값',
+        'yhat_upper': '예측 상한값'
+    })
+    alert_df['예측 상한값'] = alert_df['예측 상한값'].round(2)
+
+    if alert_df.empty:
+        st.info("📭 과거 경보 내역이 없습니다.")
+    else:
+        # 가운데 정렬 CSS
+        styled_table = alert_df.style.set_properties(**{
+            'text-align': 'center'
+        }).set_table_styles([dict(selector='th', props=[('text-align', 'center')])])
+        st.dataframe(styled_table, use_container_width=True, hide_index=True)
+
 
 
 # 7. 경보 레벨 색상 매핑
