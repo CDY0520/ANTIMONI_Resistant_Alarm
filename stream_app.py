@@ -127,60 +127,37 @@ def visualize_alert_graph(df, title="이상치 예측"):
     df['ds'] = pd.to_datetime(df['ds'])
     df = df[df['ds'].dt.year == 2023]
     
-    # 컬럼명 표준화 (yhat1 → yhat)
-    if 'yhat1' not in df.columns and 'yhat' in df.columns:
-        df['yhat1'] = df['yhat']
-    if 'yhat1_lower' not in df.columns and 'yhat_lower' in df.columns:
-        df['yhat1_lower'] = df['yhat_lower']
-    if 'yhat1_upper' not in df.columns and 'yhat_upper' in df.columns:
-        df['yhat1_upper'] = df['yhat_upper']
+    fig, ax = plt.subplots(figsize=(6, 3.2))
 
-    # 필수 컬럼 검사
-    required_cols = ['ds', 'y', 'yhat1', 'yhat1_lower', 'yhat1_upper']
-    for col in required_cols:
-        if col not in df.columns:
-            st.error(f"❌ 필수 컬럼 '{col}'이 누락되었습니다.")
-            return
+    ax.plot(df["ds"], df["y"], label="실제 예측값", marker='o', color='royalblue', linewidth=1.5)
+    ax.plot(df["ds"], df["yhat"], label="One-step 예측", linestyle="--", color='crimson', linewidth=1.5)
 
-    fig, ax = plt.subplots(figsize=(7, 3))
-    fig.patch.set_facecolor('#FFF7F0')
+    ax.fill_between(df["ds"], df["yhat_lower"], df["yhat_upper"], color='lightcoral', alpha=0.3, label="신뢰구간 (95%)")
 
-    # 라인 플롯
-    ax.plot(df['ds'], df['y'], label='실제 예측값', marker='o', color='royalblue', linewidth=1, markersize=3)
-    ax.plot(df['ds'], df['yhat1'], label='One-step 예측', linestyle='--', color='red', linewidth=1, markersize=3)
+    # 이상치 점 표시
+    if "경보" in df.columns and df["경보"].any():
+        alert_df = df[df["경보"] == True]
+        ax.scatter(alert_df["ds"], alert_df["y"], marker='*', color='gold', s=150, edgecolors='black', label="이상치")
 
-    # 신뢰구간
-    ax.fill_between(df['ds'], df['yhat1_lower'], df['yhat1_upper'],
-                    where=~df['yhat1_lower'].isna(),
-                    color='red', alpha=0.2, label='신뢰구간 (95%)')
+    else:
+        # 이상치 없더라도 범례 표시 위해 투명 마커 추가
+        ax.scatter([], [], marker='*', color='gold', s=150, edgecolors='black', label="이상치")
 
-    # 예측 시작선
-    if '예측시작' in df.columns and df['예측시작'].notna().any():
-        try:
-            start_date = pd.to_datetime(df['예측시작'].dropna().values[0])
-            ax.axvline(start_date, linestyle='--', color='gray', linewidth=0.8, label='예측 시작')
-        except Exception as e:
-            st.warning(f"예측시작 처리 오류: {e}")
+    ax.set_title(title, fontsize=13)
+    ax.set_xlabel("날짜", fontsize=11)
+    ax.set_ylabel("예측값", fontsize=11)
 
-    # 이상치 별표
-    outlier_label_added = False
-    if '경보' in df.columns:
-        df['경보'] = df['경보'].apply(lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False)
-        for _, row in df[df['경보']].iterrows():
-            label = '이상치' if not outlier_label_added else None
-            ax.plot(row['ds'], row['y'], marker='*', color='#FFC107', markersize=10,
-                    markeredgecolor='black', markeredgewidth=0.6, linestyle='None', label=label)
-            outlier_label_added = True
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+    ax.tick_params(axis='x', rotation=45)
+    ax.grid(True, linestyle='--', alpha=0.5)
 
-    # 스타일 및 라벨
-    ax.set_title(title, fontsize=8, fontproperties=fontprop)
-    ax.set_xlabel("날짜", fontsize=7, fontproperties=fontprop)
-    ax.set_ylabel("예측값", fontsize=7, fontproperties=fontprop)
-    ax.tick_params(axis='both', labelsize=6)
-    ax.grid(True, linestyle='--', linewidth=0.5, color='#CCCCCC')
+    ax.legend(loc='upper left', fontsize=9)  # 범례 폰트 크기 줄임
 
-    # 범례
-    ax.legend(fontsize=6, loc='upper left', frameon=False, prop=fontprop)
+    # 배경 스타일 조정
+    fig.patch.set_facecolor('#fff1e6')
+    ax.set_facecolor('#fff1e6')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
 
     st.pyplot(fig)
 
