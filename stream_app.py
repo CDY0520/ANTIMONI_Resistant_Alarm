@@ -122,18 +122,51 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
-    current_date = pd.to_datetime('2023-08-01')  # 또는 df['ds'].max()
-    file_name = title.replace(" ", "").replace("이상치 예측", "")
-    y_label = "예측값"
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    import matplotlib.font_manager as fm
+    import pandas as pd
+
+    # --- 기본 폰트 및 스타일 설정 ---
+    plt.style.use('default')
+    plt.rcParams['font.family'] = 'Noto Sans KR'
+    plt.rcParams['axes.unicode_minus'] = False
+
+    # --- 2023년 데이터만 필터 ---
+    df['ds'] = pd.to_datetime(df['ds'])
+    df_2023 = df[df['ds'].dt.year == 2023].copy()
+
+    # --- Figure 설정 ---
+    fig, ax = plt.subplots(figsize=(7, 4))
     
-    # 병원 or 지역사회에 따라 라벨 추정
-    if "표본감시" in title:
-        y_label = "표본감시 발생 건수"
-    elif "CRE" in title:
-        y_label = "CRE 발생 건수"
-    
-    plot_graph(df, title_text=title, y_label=y_label, current_date=current_date)
-    render_alarms([(title, df)], current_date=current_date)
+    # --- 그래프 본체 ---
+    ax.plot(df_2023['ds'], df_2023['y'], label='실제 예측값', color='royalblue', marker='o', linewidth=2)
+    ax.plot(df_2023['ds'], df_2023['yhat'], label='One-step 예측', linestyle='--', color='crimson', linewidth=2)
+    ax.fill_between(df_2023['ds'], df_2023['yhat_lower'], df_2023['yhat_upper'], 
+                    color='crimson', alpha=0.2, label='신뢰구간 (95%)')
+
+    # --- 이상치 마커 (있을 경우만) ---
+    if '경보' in df_2023.columns and df_2023['경보'].any():
+        anomaly_df = df_2023[df_2023['경보'] == True]
+        ax.scatter(anomaly_df['ds'], anomaly_df['y'], color='gold', marker='*',
+                   s=120, edgecolors='black', label='이상치', zorder=5)
+
+    # --- 이상치 범례 강제 추가 (없어도 표시) ---
+    ax.plot([], [], marker='*', color='gold', linestyle='None',
+            markersize=10, label='이상치')
+
+    # --- 포맷 설정 ---
+    ax.set_title(title, fontsize=14)
+    ax.set_xlabel("날짜", fontsize=12)
+    ax.set_ylabel("예측값", fontsize=12)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    ax.tick_params(axis='x', rotation=45)
+    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.legend(loc='upper left', fontsize=10, frameon=True)
+
+    fig.tight_layout()
+    st.pyplot(fig)
+
 
 # 5. 경보 탑지 함수
 def render_alarms(df, panel_title="경보 내역"):
