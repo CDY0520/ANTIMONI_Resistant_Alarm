@@ -240,17 +240,25 @@ left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
 # 왼쪽: 통합 경보 영역
 with left_panel:
+    # 통합 경보 제목
     st.markdown("### 🔔 통합 경보")
 
-    # 병원 감염 드롭박스
-    st.markdown("#### 🏥 병원 감염")
-    hospital_choice = st.selectbox("", list(hospital_file_map.keys()), label_visibility="collapsed")
+    # 병원/지역사회 감염 선택 박스를 수평으로 배치
+    col1, col2 = st.columns([1, 1])  # 같은 비율로 2분할
 
-    # 지역사회 감염 드롭박스
-    st.markdown("#### 🌐 지역사회 감염")
-    community_choice = st.selectbox("", list(community_file_map.keys()), label_visibility="collapsed")
+    with col1:
+        st.markdown("#### 🏥 병원 감염")
+        hospital_choice = st.selectbox(
+            "병원 감염 선택", list(hospital_file_map.keys()), label_visibility="collapsed"
+        )
 
-    # 데이터 로드
+    with col2:
+        st.markdown("#### 🌐 지역사회 감염")
+        community_choice = st.selectbox(
+            "지역사회 감염 선택", list(community_file_map.keys()), label_visibility="collapsed"
+        )
+
+    # 이후 로직 동일하게 유지
     hospital_df = None
     community_df = None
 
@@ -272,57 +280,12 @@ with left_panel:
     if hospital_df is not None and community_df is not None:
         current_date = hospital_df['ds'].max()
         level = get_alarm_level(hospital_df, community_df, current_date)
-        level_color_map = {
-            1: 'green', 2: 'blue', 3: 'yellow', 4: 'orange', 5: 'red'
-        }
         color = level_color_map[level]
 
         draw_gauge(level, color)
         st.markdown(f"#### 현재 레벨: {level}단계 ({color})")
     else:
         st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
-
-    # 경보 레벨 설명 표 (코드 구현 버전)
-    st.markdown("### 경보 레벨 체계 (5단계)")
-    level_rows = [
-        ("1단계", "안정", "🟢 Green", "병원 감염 및 지역사회 감염 모두 안정"),
-        ("2단계", "관찰", "🔵 Blue", "지역사회 감염 위험 존재"),
-        ("3단계", "주의(경미)", "🟡 Yellow", "병원 감염 이상치 1회"),
-        ("4단계", "주의(강화)", "🟠 Orange", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
-        ("5단계", "경보", "🔴 Red", "병원 감염 이상치 2개월 연속")
-    ]
-    st.markdown("""
-    <style>
-    .custom-table {
-        border-collapse: collapse;
-        width: 100%;
-        font-size: 14px;
-    }
-    .custom-table td {
-        border: 1px solid #ddd;
-        padding: 6px;
-    }
-    </style>
-    <table class="custom-table">
-    """ + "".join([
-        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
-    ]) + "</table>", unsafe_allow_html=True)
-
-# 가운데: 병원 감염 예측 그래프
-with center_panel:
-    st.markdown("### 🏥 병원 이상치 예측")
-    if hospital_df is not None:
-        visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
-    else:
-        st.info("병원 감염 데이터를 선택하세요.")
-
-# 오른쪽: 지역사회 감염 예측 그래프
-with right_panel:
-    st.markdown("### 🌐 지역사회 이상치 예측")
-    if community_df is not None:
-        visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
-    else:
-        st.info("지역사회 감염 데이터를 선택하세요.")
 
 # 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
