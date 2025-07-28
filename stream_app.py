@@ -238,14 +238,14 @@ with left_panel:
     st.markdown("### 🛎️ 통합 경보")
 
     # 파일 존재 시 로드 및 처리
-    if os.path.exists(hospital_file) and os.path.exists(community_file):
-        hospital_df = pd.read_excel(hospital_file)
+    if os.path.exists(hospital_file_map) and os.path.exists(community_file_map):
+        hospital_df = pd.read_excel(hospital_file_map)
         hospital_df['ds'] = pd.to_datetime(hospital_df['ds'])
-        hospital_df['경보'] = hospital_df['경보'].astype(str).str.upper().isin(['TRUE', '1', '1.0', 'T'])
+        hospital_df['경보'] = hospital_df['경보'].astype(str).str.upper().isin(['TRUE'])
 
-        community_df = pd.read_excel(community_file)
+        community_df = pd.read_excel(community_file_map)
         community_df['ds'] = pd.to_datetime(community_df['ds'])
-        community_df['경보'] = community_df['경보'].astype(str).str.upper().isin(['TRUE', '1', '1.0', 'T'])
+        community_df['경보'] = community_df['경보'].astype(str).str.upper().isin(['TRUE'])
 
         # 통합 경보 계산
         level = get_alarm_level(hospital_df, community_df, current_date)
