@@ -169,41 +169,36 @@ def visualize_alert_graph(df, title="이상치 예측"):
 
 
 # 5. 경보 탑지 함수
-def render_alarms(df, panel_title="경보 내역"):
-    st.markdown(f"### {panel_title}")
-    if df.empty:
-        st.info("📌 현재 경보가 없습니다.")
-        return
+def render_alert_message(latest_df, dataset_label="병원 감염"):
+    """
+    이상치 발생 여부에 따라 경보 메시지 출력.
+    latest_df: 최신 월 데이터 (df.tail(1) 또는 마지막 달 필터된 df)
+    dataset_label: "병원 감염" / "지역사회 감염"
+    """
+    row = latest_df.iloc[0]
+    current_date = row['ds'].strftime("%Y-%m")
 
-    df = df.copy()
+    if row['경보']:  # 이상치 발생한 경우
+        current_val = int(row['y'])
+        upper_val = round(row['yhat_upper'], 2)
+        interpretation = row.get('경보해석', '')
 
-    # 필요한 컬럼만 추출 & 포맷
-    df['날짜'] = pd.to_datetime(df['ds']).dt.strftime('%Y-%m-%d')
-    df['실제값'] = df['y'].apply(lambda x: f"{x:.0f}")
-    df['예측상한'] = df['yhat_upper'].apply(lambda x: f"{x:.2f}")
+        message_md = f"""
+        <div style="background-color:#223D77; padding:10px; border-radius:8px;">
+            <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date}] {dataset_label} 이상치 발생</span><br>
+            <span style="color:black;">▶ 현재값 ({current_val})이 예측 상한값 ({upper_val})을 초과하였습니다.</span><br>
+            <span style="color:black;">▶ {interpretation}</span>
+        </div>
+        """
+        st.markdown(message_md, unsafe_allow_html=True)
 
-    df_display = df[['날짜', '실제값', '예측상한']]
-
-    # 스타일링 및 HTML 출력
-    st.markdown("""
-    <style>
-    .custom-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-        font-family: 'Noto Sans KR', sans-serif;
-        background-color: white;
-        color: black;
-    }
-    .custom-table th, .custom-table td {
-        text-align: center;
-        padding: 6px;
-        border: 1px solid #ddd;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown(df_display.to_html(index=False, classes='custom-table'), unsafe_allow_html=True)
+    else:  # 이상치 없음
+        message_md = f"""
+        <div style="background-color:#223D77; padding:10px; border-radius:8px;">
+            <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span>
+        </div>
+        """
+        st.markdown(message_md, unsafe_allow_html=True)
 
 # 6. 경보 레벨 색상 매핑
 level_color_map = {
@@ -306,182 +301,84 @@ def get_alarm_level(hospital_df, community_df, current_date):
         return 1
 
 # 9. 3분할 레이아웃
-left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
+# 3분할 레이아웃 구성
+col1, col2, col3 = st.columns([1.2, 2.5, 2.5])
 
-# 👉 드롭다운 선택 (가운데/오른쪽)
-with center_panel:
-    st.markdown("### 🏥 병원 감염")
-    hospital_choice = st.selectbox("병원 감염을 선택하세요", ["선택"] + list(hospital_file_map.keys()))
-
-with right_panel:
-    st.markdown("### 🌐 지역사회 감염")
-    community_choice = st.selectbox("지역사회 감염을 선택하세요", ["선택"] + list(community_file_map.keys()))
-
-# 👉 병원 및 지역사회 데이터 로딩
-hospital_df = None
-community_df = None
-
-if hospital_choice != "선택":
-    file_path = hospital_file_map[hospital_choice][0]
-    if os.path.exists(file_path):
-        hospital_df = pd.read_excel(file_path)
-    else:
-        st.warning(f"❌ 병원 감염 파일({file_path})이 존재하지 않습니다.")
-
-if community_choice != "선택":
-    file_path = community_file_map[community_choice][0]
-    if os.path.exists(file_path):
-        community_df = pd.read_excel(file_path)
-    else:
-        st.warning(f"❌ 지역사회 감염 파일({file_path})이 존재하지 않습니다.")
-
-# 👉 왼쪽: 통합 경보 영역
-with left_panel:
+# ------------------------
+# ✅ col1: 통합 경보 영역
+# ------------------------
+with col1:
     st.markdown("### 🔔 통합 경보")
+    st.markdown("#### ")
 
-    if hospital_df is not None and community_df is not None:
-        current_date = hospital_df['ds'].max()
-        level = get_alarm_level(hospital_df, community_df, current_date)
+    # 통합 경보 등급 계산
+    level, color_hex = get_integrated_alert_level(hospital_df, community_df)
 
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=level,
-            title={'text': "경보 레벨", 'font': {'size': 20}},
-            gauge={
-                'axis': {'range': [1, 5], 'tickmode': 'array', 'tickvals': [1, 2, 3, 4, 5]},
-                'bar': {'color': "black", 'thickness': 0.3},
-                'steps': [
-                    {'range': [1, 2], 'color': "#00cc96"},  # green
-                    {'range': [2, 3], 'color': "#636efa"},  # blue
-                    {'range': [3, 4], 'color': "#f4c430"},  # yellow
-                    {'range': [4, 5], 'color': "#ffa15a"},  # orange
-                    {'range': [5, 5.1], 'color': "#ef553b"} # red
-                ],
-                'threshold': {
-                    'line': {'color': "black", 'width': 4},
-                    'thickness': 0.75,
-                    'value': level
-                }
-            }
-        ))
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.markdown("📌 병원 및 지역사회 감염 항목을 선택하세요.")
+    # 바늘형 게이지 차트 시각화
+    draw_gauge(level, color_hex)
 
-    # 경보 레벨 설명 표
+    # 경보 체계 설명표
     st.markdown("### 경보 레벨 체계 (5단계)")
-
-    level_rows = [
-        ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
-        ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
-        ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
-        ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
-        ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
-    ]
-
-    st.markdown("""
-    <style>
-    .custom-alert-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-        font-family: 'Noto Sans KR', sans-serif;
-        background-color: transparent;
-        color: white;
+    level_info = {
+        "1단계": "병원 감염 및 지역사회 감염 모두 안정",
+        "2단계": "지역사회 감염 위험 존재",
+        "3단계": "병원 감염 이상치 1회",
+        "4단계": "병원 감염 이상치 1회 + 지역사회 감염 위험",
+        "5단계": "병원 감염 이상치 2개월 연속"
     }
-    .custom-alert-table td {
-        padding: 6px;
-        border: none;
+    level_colors = {
+        "1단계": "green", "2단계": "blue", "3단계": "orange", "4단계": "orange", "5단계": "red"
     }
-    </style>
-    """, unsafe_allow_html=True)
+    level_icons = {
+        "1단계": "🟢", "2단계": "🔵", "3단계": "🟠", "4단계": "🟠", "5단계": "🔴"
+    }
+    table_data = []
+    for level, desc in level_info.items():
+        table_data.append([level_icons[level], desc])
+    level_table = pd.DataFrame(table_data, columns=["", "설명"])
+    st.dataframe(level_table, use_container_width=True, hide_index=True)
 
-    st.markdown(
-        "<table class='custom-alert-table'>" +
-        "".join([
-            f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
-        ]) +
-        "</table>",
-        unsafe_allow_html=True
-    )
+# ------------------------
+# ✅ col2: 병원 감염 영역
+# ------------------------
+with col2:
+    st.markdown("### 🏥 병원 감염 선택택")
 
-# 👉 병원 예측 그래프 표시
-with center_panel:
-    st.markdown("### 병원 감염 이상치 예측")
-    if hospital_df is not None:
-        visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
-        
-        # ▼ 여기에 현재 경보 메시지 코드 삽입 ▼
-        current_month = pd.to_datetime(hospital_df["ds"].max()).strftime("%Y-%m")
-        hospital_df["ds"] = pd.to_datetime(hospital_df["ds"])
-        current_alert = hospital_df[hospital_df["ds"].dt.strftime("%Y-%m") == current_month]
-        
-        if "경보" in current_alert.columns and current_alert["경보"].any():
-            current_alert_row = current_alert[current_alert["경보"] == True].iloc[0]
-            actual = int(current_alert_row["y"])
-            upper = float(current_alert_row["yhat_upper"])
-            interpret = current_alert_row.get("경보해석", "")
-    
-            st.markdown(f"""
-            <div style='color:red; font-size:15px; font-weight:bold;'>
-            📌 [{current_month}] 이상치 발생
-            </div>
-            <div style='margin-top:5px; color:white; font-size:14px;'>
-            ◀ 현재값: ({actual}), 예측 상한: ({upper:.2f}) → 현재값이 예측 상한을 초과하였습니다.<br>
-            ◀ {interpret}
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div style='color:green; font-size:15px; font-weight:bold;'>
-            📌 [{current_month}] 현재 이상치가 발생하지 않아 경보가 없습니다.
-            </div>
-            """, unsafe_allow_html=True)
-        # ▲ 여기까지 현재 경보 메시지 코드 ▲
-        
-        hospital_alert_df = hospital_df[hospital_df["경보"] == True] if "경보" in hospital_df.columns else pd.DataFrame()
-        render_alarms(hospital_alert_df, panel_title="과거 경보 내역")
+    # 감염 종류 선택
+    hospital_choice = st.selectbox("병원 감염을 선택하세요", hospital_options, key="hospital_select")
+    hospital_df = data_dict[hospital_choice]
 
+    # 병원 감염 그래프
+    visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
 
+    # 현재 경보 메시지
+    latest_hosp = hospital_df[hospital_df['ds'] == hospital_df['ds'].max()]
+    render_alert_message(latest_hosp, dataset_label="병원 감염")
 
-# 👉 지역사회 예측 그래프 표시
-with right_panel:
-    st.markdown("### 지역사회 감염 이상치 예측")
+    # 과거 경보 내역
+    st.markdown("### 과거 경보 내역")
+    display_alert_table(hospital_df)
 
-    if community_df is not None:
-        visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
-        
-        # ▼ 현재 경보 메시지 출력 블럭 ▼
-        current_month = pd.to_datetime(community_df["ds"].max()).strftime("%Y-%m")
-        community_df["ds"] = pd.to_datetime(community_df["ds"])
-        current_alert = community_df[community_df["ds"].dt.strftime("%Y-%m") == current_month]
+# ------------------------
+# ✅ col3: 지역사회 감염 영역
+# ------------------------
+with col3:
+    st.markdown("### 🌐 지역사회 감염 선택")
 
-        if "경보" in current_alert.columns and current_alert["경보"].any():
-            current_alert_row = current_alert[current_alert["경보"] == True].iloc[0]
-            actual = int(current_alert_row["y"])
-            upper = float(current_alert_row["yhat_upper"])
-            interpret = current_alert_row.get("경보해석", "")
+    # 감염 종류 선택
+    community_choice = st.selectbox("지역사회 감염을 선택하세요", community_options, key="community_select")
+    community_df = data_dict[community_choice]
 
-            st.markdown(f"""
-            <div style='color:red; font-size:15px; font-weight:bold;'>
-            📌 [{current_month}] 이상치 발생
-            </div>
-            <div style='margin-top:5px; color:white; font-size:14px;'>
-            ◀ 현재값: ({actual}), 예측 상한: ({upper:.2f}) → 현재값이 예측 상한을 초과하였습니다.<br>
-            ◀ {interpret}
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div style='color:green; font-size:15px; font-weight:bold;'>
-            📌 [{current_month}] 현재 이상치가 발생하지 않아 경보가 없습니다.
-            </div>
-            """, unsafe_allow_html=True)
-        # ▲ 현재 경보 메시지 출력 블럭 끝 ▲
+    # 지역사회 감염 그래프
+    visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
 
-        # 과거 경보 내역 테이블
-        community_alert_df = community_df[community_df["경보"] == True] if "경보" in community_df.columns else pd.DataFrame()
-        render_alarms(community_alert_df, panel_title="과거 경보 내역")
+    # 현재 경보 메시지
+    latest_comm = community_df[community_df['ds'] == community_df['ds'].max()]
+    render_alert_message(latest_comm, dataset_label="지역사회 감염")
+
+    # 과거 경보 내역
+    st.markdown("### 과거 경보 내역")
+    display_alert_table(community_df)
 
 # 10. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
