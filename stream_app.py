@@ -36,15 +36,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# 드롭다운 메뉴
-st.markdown("")
-
-col1, col2 = st.columns(2)
-with col1:
-    hospital_choice = st.selectbox(" 병원 감염 선택", ["선택", "CRE(충북대병원)", "표본감시(충북대병원)"], index=0)
-with col2:
-    community_choice = st.selectbox(" 지역사회 감염 선택", ["선택", "CRE(전국)", "CRE(충북)", "표본감시(전국)", "표본감시(충북)"], index=0)
-
 # 파일 매핑
 hospital_file_map = {
     "CRE(충북대병원)": ("CRE(충북대)_경보결과.xlsx", "CRE(충북대병원) 이상치 탐지", "CRE 발생 건수"),
@@ -244,41 +235,43 @@ def draw_gauge(level, color_code):
 # 왼쪽, 가운데, 오른쪽 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
-# 왼쪽: 통합 경보
+# 왼쪽: 통합 경보 영역
 with left_panel:
-    st.markdown("### 🛎️ 통합 경보")
-    hospital_df, community_df = None, None
+    st.markdown("### 🔔 통합 경보")
+
+    # 병원 감염 드롭박스
+    st.markdown("#### 🏥 병원 감염")
+    hospital_choice = st.selectbox("", list(hospital_file_map.keys()), label_visibility="collapsed")
+
+    # 지역사회 감염 드롭박스
+    st.markdown("#### 🌐 지역사회 감염")
+    community_choice = st.selectbox("", list(community_file_map.keys()), label_visibility="collapsed")
+
+    # 데이터 로드
+    hospital_df = None
+    community_df = None
 
     if hospital_choice != "선택":
         file, title, ylabel = hospital_file_map[hospital_choice]
         if os.path.exists(file):
             hospital_df = pd.read_excel(file)
-            hospital_df.columns = hospital_df.columns.str.strip()
-            hospital_df['ds'] = pd.to_datetime(hospital_df['ds'])
         else:
-            st.warning(f"⚠️ [{file}] 파일이 없습니다.")
-
-    if hospital_choice != "선택":
-        file, title, ylabel = hospital_file_map[hospital_choice]
-        if os.path.exists(file):
-            hospital_df = pd.read_excel(file)
-            hospital_df.columns = hospital_df.columns.str.strip()
-            hospital_df['ds'] = pd.to_datetime(hospital_df['ds'])
-        else:
-            st.warning(f"⚠️ 병원 감염 파일({file})이 없습니다.")
+            st.warning(f"📁 병원 감염 파일({file})이 없습니다.")
 
     if community_choice != "선택":
         file, title, ylabel = community_file_map[community_choice]
         if os.path.exists(file):
             community_df = pd.read_excel(file)
-            community_df.columns = community_df.columns.str.strip()
-            community_df['ds'] = pd.to_datetime(community_df['ds'])
         else:
-            st.warning(f"⚠️ 지역사회 감염 파일({file})이 없습니다.")
+            st.warning(f"📁 지역사회 감염 파일({file})이 없습니다.")
 
-# 이후 통합 레벨 판단
+    # 통합 경보 레벨 계산 및 게이지 표시
     if hospital_df is not None and community_df is not None:
+        current_date = hospital_df['ds'].max()
         level = get_alarm_level(hospital_df, community_df, current_date)
+        level_color_map = {
+            1: 'green', 2: 'blue', 3: 'yellow', 4: 'orange', 5: 'red'
+        }
         color = level_color_map[level]
 
         draw_gauge(level, color)
@@ -286,18 +279,15 @@ with left_panel:
     else:
         st.warning("📁 병원 또는 지역사회 경보 데이터가 부족합니다.")
 
-    # 경보 레벨표 이미지
-    st.markdown("### 경보 레벨 체계 (5단계)")
-
+    # 경보 레벨 설명 표 (코드 구현 버전)
+    st.markdown("### 📋 경보 레벨 체계 (5단계)")
     level_rows = [
-        ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
-        ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
-        ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
-        ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
-        ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속"),
+        ("1단계", "안정", "🟢 Green", "병원 감염 및 지역사회 감염 모두 안정"),
+        ("2단계", "관찰", "🔵 Blue", "지역사회 감염 위험 존재"),
+        ("3단계", "주의(경미)", "🟡 Yellow", "병원 감염 이상치 1회"),
+        ("4단계", "주의(강화)", "🟠 Orange", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
+        ("5단계", "경보", "🔴 Red", "병원 감염 이상치 2개월 연속")
     ]
-
-    # HTML 테이블 형태로 출력
     st.markdown("""
     <style>
     .custom-table {
@@ -315,21 +305,19 @@ with left_panel:
         f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
     ]) + "</table>", unsafe_allow_html=True)
 
-# 가운데: 병원 감염 경보
+# 가운데: 병원 감염 예측 그래프
 with center_panel:
-    st.markdown("#### 병원 이상치 예측")
-    if hospital_choice != "선택":
-        # 병원 시각화 함수 호출
-        pass
+    st.markdown("### 🏥 병원 이상치 예측")
+    if hospital_df is not None:
+        visualize_alert_graph(hospital_df, title="병원 감염 이상치 예측")
     else:
         st.info("병원 감염 데이터를 선택하세요.")
-        
-# 오른쪽: 지역사회 감염 경보
+
+# 오른쪽: 지역사회 감염 예측 그래프
 with right_panel:
-    st.markdown("#### 지역사회 이상치 예측")
-    if community_choice != "선택":
-        # 지역사회 시각화 함수 호출
-        pass
+    st.markdown("### 🌐 지역사회 이상치 예측")
+    if community_df is not None:
+        visualize_alert_graph(community_df, title="지역사회 감염 이상치 예측")
     else:
         st.info("지역사회 감염 데이터를 선택하세요.")
 
