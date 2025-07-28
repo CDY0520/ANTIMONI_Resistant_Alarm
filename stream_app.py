@@ -53,6 +53,9 @@ community_file_map = {
 def plot_graph(df, title_text, y_label, current_date):
     import matplotlib.patches as mpatches
 
+    # 2023년만 시각화
+    df = df[df['ds'].dt.year == 2023]
+
     past_mask = df['ds'] < current_date
     current_mask = df['ds'] == current_date
 
@@ -117,7 +120,7 @@ def plot_graph(df, title_text, y_label, current_date):
 
     st.pyplot(fig)
 
-# 시각화 래퍼 함수
+# 4. 시각화 래퍼 함수
 def visualize_alert_graph(df, title="이상치 예측"):
     current_date = pd.to_datetime('2023-08-01')  # 또는 df['ds'].max()
     file_name = title.replace(" ", "").replace("이상치 예측", "")
@@ -132,7 +135,7 @@ def visualize_alert_graph(df, title="이상치 예측"):
     plot_graph(df, title_text=title, y_label=y_label, current_date=current_date)
     render_alarms([(title, df)], current_date=current_date)
 
-# 4. 경보 탑지 함수
+# 5. 경보 탑지 함수
 def render_alarms(alarm_records, current_date):
     st.markdown("### 🙎️ 경보 내역")
 
@@ -184,7 +187,7 @@ def render_alarms(alarm_records, current_date):
         else:
             st.markdown("과거 경보 내역 없음")
 
-# 5. 경보 레벨 색상 매핑
+# 6. 경보 레벨 색상 매핑
 level_color_map = {
     1: "Green",
     2: "Blue",
@@ -193,7 +196,7 @@ level_color_map = {
     5: "Red"
 }
 
-# 6. 게이지 차트 함수
+# 7. 게이지 차트 함수
 def draw_gauge(level, color):
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
@@ -215,7 +218,7 @@ def draw_gauge(level, color):
     fig.update_layout(height=220, margin=dict(t=30, b=0, l=10, r=10))
     st.plotly_chart(fig, use_container_width=True)
 
-# 7. 경보 레벨 판단 함수
+# 8. 경보 레벨 판단 함수
 def get_alarm_level(hospital_df, community_df, current_date):
     # 현재 날짜 기준으로 가장 최근 월 선택
     current_month = pd.to_datetime(current_date).strftime("%Y-%m")
@@ -248,7 +251,7 @@ def get_alarm_level(hospital_df, community_df, current_date):
     else:
         return 1
 
-# 8. 3분할 레이아웃
+# 9. 3분할 레이아웃
 left_panel, center_panel, right_panel = st.columns([1.1, 1.5, 1.5])
 
 # 병원/지역사회 감염 선택값 초기화
@@ -341,7 +344,7 @@ with right_panel:
     else:
         st.info("지역사회 감염 데이터를 선택하세요.")
 
-# 9. 현재 날짜 설정
+# 10. 현재 날짜 설정
 current_date = pd.to_datetime('2023-08-01')
 
 
