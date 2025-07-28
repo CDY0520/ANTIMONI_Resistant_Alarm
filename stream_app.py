@@ -259,11 +259,10 @@ def draw_gauge(level, color_hex=None):
     # 바늘 좌표 계산 (가운데서 시작해서 해당 레벨 위치로)
     angle_deg = 180 - (level - 1) * 36 - 18  # 각도 (중앙값 기준)
     angle_rad = np.radians(angle_deg)
-    x = 0.5 + 0.35 * np.cos(angle_rad)
-    y = 0.5 + 0.35 * np.sin(angle_rad)
+    x = 0.5 + 0.28 * np.cos(angle_rad)
+    y = 0.5 + 0.28 * np.sin(angle_rad)
 
     # 바늘 (흰색 선)
-     # 바늘(흰색)
     fig.add_shape(type='line',
         x0=0.5, y0=0.5, x1=x, y1=y,
         line=dict(color='white', width=4)
