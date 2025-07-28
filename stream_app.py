@@ -240,6 +240,11 @@ def draw_gauge(level, color_hex=None):
     level_colors = ['#00cc96', '#636efa', '#f4c430', '#ffa15a', '#ef553b']
     level_labels = ['1', '2', '3', '4', '5']
 
+    # 반원 각도 설정 (180도 반원, 위쪽)
+    start_angle = -90
+    end_angle = 90
+    theta = np.linspace(np.radians(start_angle), np.radians(end_angle), len(levels) + 1)
+
     # 반원 게이지 구성 (go.Pie)
     fig = go.Figure()
 
@@ -267,6 +272,9 @@ def draw_gauge(level, color_hex=None):
         x0=0.5, y0=0.5, x1=x, y1=y,
         line=dict(color='black', width=4)
     )
+
+    # 바늘 (흰색)
+    ax.plot([angle_rad, angle_rad], [0, 1], color='white', linewidth=4)
 
     # 중앙 숫자 표시
     fig.add_annotation(
