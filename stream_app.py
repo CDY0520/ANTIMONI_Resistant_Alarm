@@ -57,21 +57,21 @@ current_date = pd.to_datetime('2023-08-01')
 # 실제 데이터 파일 읽어오기
 data_dict = {}
 
-# 병원 데이터 로드
 for name, (filename, _, _) in hospital_file_map.items():
-    df = pd.read_excel(os.path.join("data", filename))  # 경로 조정 필요
-    df["ds"] = pd.to_datetime(df["ds"])
-    data_dict[name] = df
+    if os.path.exists(filename):
+        df = pd.read_excel(filename)
+        df['ds'] = pd.to_datetime(df['ds'])
+        data_dict[name] = df
+    else:
+        st.warning(f"❌ 병원 파일 누락: {filename}")
 
-# 지역사회 데이터 로드
 for name, (filename, _, _) in community_file_map.items():
-    df = pd.read_excel(os.path.join("data", filename))  # 경로 조정 필요
-    df["ds"] = pd.to_datetime(df["ds"])
-    data_dict[name] = df
-
-# 선택 옵션 생성
-hospital_options = list(hospital_file_map.keys())
-community_options = list(community_file_map.keys())
+    if os.path.exists(filename):
+        df = pd.read_excel(filename)
+        df['ds'] = pd.to_datetime(df['ds'])
+        data_dict[name] = df
+    else:
+        st.warning(f"❌ 지역사회 파일 누락: {filename}")
 
 # 4. 시각화 함수
 def plot_graph(df, title_text, y_label, current_date):
