@@ -200,11 +200,16 @@ def display_alert_table(df):
     if alert_df.empty:
         st.info("📭 과거 경보 내역이 없습니다.")
     else:
-        # 컬럼명만 가운데 정렬
-        styled_table = alert_df.style.set_table_styles([
-            {'selector': 'th', 'props': [('text-align', 'center')]}
-        ])
+        styled_table = (
+            alert_df.style
+            .format({'예측 상한값': '{:.2f}'})  # 소수점 2자리
+            .set_properties(**{'text-align': 'center'})  # 셀 가운데 정렬
+            .set_table_styles([
+                {'selector': 'th', 'props': [('text-align', 'center')]}  # 컬럼명 가운데 정렬
+            ])
+        )
         st.dataframe(styled_table, use_container_width=True, hide_index=True)
+
 
 # 7. 경보 레벨 색상 매핑
 level_color_map = {
