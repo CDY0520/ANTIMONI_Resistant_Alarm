@@ -121,21 +121,26 @@ def plot_graph(df, title_text, y_label, current_date):
     st.pyplot(fig)
 
 
-# 경보 출력
+# 경보 탑지 함수
 def render_alarms(alarm_records, current_date):
-    st.markdown("### 🛎️ 경보 내역")
+    st.markdown("### 🙎️ 경보 내역")
 
     for name, raw_df in alarm_records:
         st.markdown(f"#### 📌 {name}")
 
-        # ✅ 경보 컬럼 boolean으로 강제 변환
-        if '경보' in raw_df.columns:
-            raw_df['경보'] = raw_df['경보'].apply(lambda x: True if str(x).strip().upper() in ['TRUE', '1.0', '1', 'T'] else False)
-        else:
+        if '경보' not in raw_df.columns:
             st.warning("⚠️ '경보' 컬럼 없음")
             continue
-        
-        alarm_df = raw_df[raw_df['경보'].fillna(False)]
+
+        try:
+            raw_df['경보'] = raw_df['경보'].apply(
+                lambda x: True if str(x).strip().upper() in ['TRUE', '1', '1.0', 'T'] else False
+            )
+            alarm_df = raw_df[raw_df['경보']]
+        except Exception as e:
+            st.error(f"⚠️ 경보 컬럼 처리 중 오류 발생: {e}")
+            continue
+
         current_alarm = alarm_df[alarm_df['ds'] == current_date]
         past_alarms = alarm_df[alarm_df['ds'] < current_date]
 
@@ -144,22 +149,18 @@ def render_alarms(alarm_records, current_date):
             st.markdown(f"""
             <div style='background-color:#fff4e5; padding:10px 14px; border-radius:6px;
                         border-left: 5px solid #ff8800; font-size: 14px; margin-bottom:8px;'>
-
               <div style='color:red; font-weight:bold; margin-bottom:6px'>
                 📌 현재 경보 발생 ({row['ds'].strftime('%Y-%m')})
               </div>
-
               <div style='color:black; margin-bottom:4px'> 
                 ▶ 실제값 <b>{row['y']:.0f}</b>이(가) 예측상한 <b>{row['yhat_upper']:.2f}</b> 초과
               </div>
               {"".join([f"<div style='color:black;'>▶ {line.strip()}</div>"
                         for line in str(row['경보해석']).splitlines() if line.strip()])}
-
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown(f"<span style='font-size:13px;color:gray'>📭 현재({current_date.strftime('%Y-%m')})에는 경보가 없습니다.</span>",
-                        unsafe_allow_html=True)
+            st.markdown(f"<span style='font-size:13px;color:gray'>📍 현재({current_date.strftime('%Y-%m')})에는 경보가 없습니다.</span>", unsafe_allow_html=True)
 
         if not past_alarms.empty:
             st.markdown("📜 과거 경보 내역")
