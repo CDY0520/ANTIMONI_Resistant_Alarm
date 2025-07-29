@@ -215,19 +215,50 @@ def display_alert_table(df):
     alert_df['현재값'] = alert_df['현재값'].astype(int)
     alert_df['예측 상한값'] = alert_df['예측 상한값'].round(2)
 
-    if alert_df.empty:
+     if alert_df.empty:
         st.info("📭 과거 경보 내역이 없습니다.")
     else:
-        styled_table = (
-            alert_df.style
-            .format({'예측 상한값': '{:.2f}'})  # 소수점 2자리
-            .set_properties(**{'text-align': 'center'})  # 셀 가운데 정렬
-            .set_table_styles([
-                {'selector': 'th', 'props': [('text-align', 'center')]}  # 컬럼명 가운데 정렬
-            ])
-        )
-        st.dataframe(styled_table, use_container_width=True, hide_index=True)
+        # HTML 테이블 렌더링
+        table_html = """
+        <style>
+        .centered-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .centered-table th, .centered-table td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: center;
+        }
+        .centered-table th {
+            background-color: #1e1e1e;
+            color: white;
+        }
+        </style>
+        <table class="centered-table">
+            <thead>
+                <tr>
+                    <th>경보 발생 시점</th>
+                    <th>현재값</th>
+                    <th>예측 상한값</th>
+                </tr>
+            </thead>
+            <tbody>
+        """
 
+        for _, row in alert_df.iterrows():
+            table_html += f"""
+                <tr>
+                    <td>{row['경보 발생 시점']}</td>
+                    <td>{row['현재값']}</td>
+                    <td>{row['예측 상한값']:.2f}</td>
+                </tr>
+            """
+
+        table_html += "</tbody></table>"
+
+        st.markdown(table_html, unsafe_allow_html=True)
 
 # 7. 경보 레벨 색상 매핑
 level_color_map = {
