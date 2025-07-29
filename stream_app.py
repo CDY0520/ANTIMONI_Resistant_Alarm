@@ -171,6 +171,10 @@ def render_alert_message(df, current_date, dataset_label):
     current_row = df[df['ds'] == current_date]
     current_date_str = pd.to_datetime(current_date).strftime("%Y-%m")
 
+     if current_row.empty:
+        st.warning(f"⚠️ {current_date_str}에 해당하는 데이터를 찾을 수 없습니다.")
+        return
+
     row = current_row.iloc[0]
     current_val = int(row['y'])
     threshold = row['yhat_upper']
@@ -208,10 +212,14 @@ def render_alert_message(df, current_date, dataset_label):
             if isinstance(interpretation, str) and interpretation.strip():
                 message_md += f'<span style="color:black;">▶ {interpretation}</span><br>'
             message_md += "</div>" 
+
+            st.markdown(message_md, unsafe_allow_html=True)
+            
         except Exception as e:
             st.error(f"⚠️ 경보 메시지 처리 오류: {e}")
             
     else:
+        # 이상치 없을 경우 메시지
         st.markdown(f"""
         <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
             <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
