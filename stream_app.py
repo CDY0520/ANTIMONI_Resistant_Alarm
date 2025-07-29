@@ -150,16 +150,16 @@ def render_alert_message(latest_df, current_date, dataset_label="병원 감염")
     """
     이상치 발생 여부에 따라 경보 메시지 출력.
     """
-    row = latest_df.iloc[0]
     current_date_str = pd.to_datetime(current_date).strftime("%Y-%m")
 
-    # 경보 여부 판정 (bool 또는 문자열 가능)
-    raw_alert = row.get('경보', '')
-    is_alert = False
-    if isinstance(raw_alert, bool):
-        is_alert = raw_alert
-    else:
-        is_alert = str(raw_alert).strip().upper() in ["TRUE", "1", "1.0", "T"]
+    # 정확히 current_date에 해당하는 행만 필터
+    row = latest_df[latest_df['ds'] == current_date]
+    if row.empty:
+        st.warning(f"⚠️ [{current_date_str}] 날짜에 해당하는 데이터가 없습니다.")
+        return
+
+    row = row.iloc[0]
+    is_alert = row['경보']  # bool 타입으로 바로 판별
 
     if is_alert:
         try:
@@ -174,7 +174,7 @@ def render_alert_message(latest_df, current_date, dataset_label="병원 감염")
                 <span style="color:black;">▶ 현재값 ({current_val})이 예측 상한값 ({upper_val})을 초과하였습니다.</span><br>
             """
 
-            if interpretation and isinstance(interpretation, str):
+            if interpretation and isinstance(interpretation, str) and interpretation.strip() != "":
                 message_md += f'<span style="color:black;">▶ {interpretation}</span><br>'
 
             message_md += "</div>"
