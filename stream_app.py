@@ -379,7 +379,7 @@ y_label_hospital, y_label_community = None, None
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 
 with col2:
-    st.markdown("#### 🏥 병원 감염")
+    st.markdown('<div class="box">#### 🏥 병원 감염</div>', unsafe_allow_html=True)
     hospital_options = ["선택"] + list(hospital_file_map.keys())
     hospital_choice = st.selectbox("", hospital_options, index=0, key="hospital_select")
 
@@ -389,7 +389,7 @@ with col2:
         plot_graph(hospital_df, "병원 감염 이상치 예측", y_label_hospital, current_date)
 
 with col3:
-    st.markdown("#### 🌐 지역사회 감염")
+    st.markdown('<div class="box">#### 🌐 지역사회 감염</div>', unsafe_allow_html=True)
     community_options = ["선택"] + list(community_file_map.keys())
     community_choice = st.selectbox("", community_options, index=0, key="community_select")
 
