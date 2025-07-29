@@ -454,20 +454,3 @@ with col1:
         """, unsafe_allow_html=True)
 
 
-
-# 11. 여기부터 하단 3분할 시작
-bottom_col1, bottom_col2, bottom_col3 = st.columns([1, 2, 2])
-
-with bottom_col1:
-    st.markdown("#### 경보 레벨 체계 (5단계)")
-    st.markdown(alert_level_legend_html, unsafe_allow_html=True)
-
-with bottom_col2:
-    st.markdown("#### 과거 경보 내역 (병원 감염)")
-    st.dataframe(hospital_alert_df, use_container_width=True)
-
-with bottom_col3:
-    st.markdown("#### 과거 경보 내역 (지역사회 감염)")
-    st.dataframe(community_alert_df, use_container_width=True)
-
-
