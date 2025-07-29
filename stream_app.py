@@ -53,7 +53,7 @@ community_file_map = {
 }
 
 # 3. 현재 날짜 설정 및 data_dict 정의
-current_date = pd.to_datetime('2023-08-01')
+current_date = pd.to_datetime('2023-08-01%')
 data_dict = {}
 
 for name, (filename, _, _) in hospital_file_map.items():
