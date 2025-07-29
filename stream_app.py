@@ -276,7 +276,7 @@ def draw_gauge(level, color_hex=None):
     )
 
     # 바늘 위치 계산 (중심 기준 각도, 시계방향 45도씩)
-    angle_deg = 180 - ((level - 0.5) * 36) - 7
+    angle_deg = 180 - ((level - 0.5) * 36) - 8
     angle_rad = np.radians(angle_deg)
     x = 0.5 + 0.2 * np.cos(angle_rad)  # 바늘 길이
     y = 0.5 + 0.2 * np.sin(angle_rad)
