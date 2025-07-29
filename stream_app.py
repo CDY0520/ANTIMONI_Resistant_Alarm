@@ -265,6 +265,22 @@ def draw_gauge(level, color_hex=None):
         showlegend=False
     ))
 
+    # 중앙 숫자 스타일 수정
+    fig.add_annotation(
+        text=f"<b>{level}</b>",
+        x=0.5, y=0.42,
+        font=dict(size=36, color='black', family='Noto Sans KR'),
+        showarrow=False
+    )
+
+    # 배경 색상 수정
+    fig.update_layout(
+        height=300,
+        margin=dict(t=30, b=0, l=10, r=10),
+        paper_bgcolor='#fef9f5',
+        plot_bgcolor='#fef9f5'  
+    )
+
     # 바늘 좌표 계산 (가운데서 시작해서 해당 레벨 위치로)
     angle_deg = 180 - (level - 1) * 36 - 18  # 각도 (중앙값 기준)
     angle_rad = np.radians(angle_deg)
@@ -379,7 +395,7 @@ with col2:
         render_alert_message(hospital_df, current_date, dataset_label="병원 감염")
 
         # 과거 경보 내역
-        st.markdown("### 과거 경보 내역")
+        st.markdown("#### 과거 경보 내역")
         display_alert_table(hospital_df)
 
 # ------------------------
@@ -407,14 +423,14 @@ with col3:
         render_alert_message(community_df, current_date, dataset_label="지역사회 감염")
 
         # 과거 경보 내역
-        st.markdown("### 과거 경보 내역")
+        st.markdown("#### 과거 경보 내역")
         display_alert_table(community_df)
         
 # ------------------------
 # ✅ col1: 통합 경보 영역 (hospital_df & community_df 정의 이후로 이동)
 # ------------------------
 with col1:
-    st.markdown("### 🔔 통합 경보")
+    st.markdown("#### 🔔 통합 경보")
     st.markdown("#### ")
 
     if (
@@ -427,7 +443,7 @@ with col1:
         draw_gauge(level, color_hex)
 
         # 경보 체계 설명표
-        st.markdown("### 경보 레벨 체계 (5단계)")
+        st.markdown("#### 경보 레벨 체계 (5단계)")
         level_rows = [
             ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
             ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
