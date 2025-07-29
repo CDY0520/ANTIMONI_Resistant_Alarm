@@ -164,9 +164,10 @@ def render_alert_message(df, current_date, dataset_label):
     df = df.copy()
     df['ds'] = pd.to_datetime(df['ds'])
     df['경보'] = df['경보'].apply(lambda x: str(x).strip().upper() in ["TRUE", "1", "1.0", "T"])
-    df['월'] = df['ds'].dt.strftime("%Y-%m")
 
-    current_row = df[df['월'] == current_date]
+    current_date = pd.to_datetime(current_date)
+    current_row = df[df['ds'] == current_date]
+
     if current_row.empty:
         st.warning("⚠️ 해당 날짜의 데이터를 찾을 수 없습니다.")
         return
