@@ -353,11 +353,22 @@ col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 
 with col1:
     st.markdown("#### 🔔 통합 경보")
-    if hospital_df is not None and community_df is not None:
+     if ('hospital_df' in locals() and hospital_choice != "선택" and
+        'community_df' in locals() and community_choice != "선택"):
         level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
+
+        # 바늘형 게이지 차트 시각화
         draw_gauge(level, color_hex)
-    else:
-        st.markdown("<br><br>", unsafe_allow_html=True)  # 빈칸 유지용
+
+     else:
+        # 병원/지역사회 감염 미선택 시 메시지
+        st.markdown("""
+        <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
+            <span style="color:#000000; font-weight:bold;">
+                ⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
 
 with col2:
     st.markdown("#### 🏥 병원 감염")
