@@ -171,7 +171,7 @@ def render_alert_message(df, current_date, dataset_label):
     current_row = df[df['ds'] == current_date]
     current_date_str = pd.to_datetime(current_date).strftime("%Y-%m")
 
-     if current_row.empty:
+    if current_row.empty:
         st.warning(f"⚠️ {current_date_str}에 해당하는 데이터를 찾을 수 없습니다.")
         return
 
