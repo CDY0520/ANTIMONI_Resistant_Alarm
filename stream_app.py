@@ -302,17 +302,42 @@ def draw_gauge(level, color_hex=None):
         showarrow=False
     )
 
+    # 바늘 삼각형 좌표
+    needle = go.Scatter(
+        x=[0, -0.02, 0.02, 0],
+        y=[0, 0.02, 0.02, 0],
+        mode='lines',
+        fill='toself',
+        line=dict(color='navy'),
+        showlegend=False
+    )
+
+    # 바늘 라인 (중심 → 끝)
+    needle_line = go.Scatter(
+        x=[0, x],
+        y=[0, y],
+        mode='lines',
+        line=dict(color='navy', width=4),
+        showlegend=False
+    )
+
     # 바늘 위치 계산 (중심 기준 각도, 시계방향 45도씩)
     angle_deg = 180 - ((level - 0.5) * 36) - 8
     angle_rad = np.radians(angle_deg)
     x = 0.5 + 0.2 * np.cos(angle_rad)  # 바늘 길이
     y = 0.5 + 0.2 * np.sin(angle_rad)
 
-    # 바늘 추가 (흰색)
-    fig.add_shape(
-        type='line',
-        x0=0.5, y0=0.5, x1=x, y1=y,
-        line=dict(color='#2B3F73', width=4)
+    # 바늘 추가
+    fig.add_trace(needle_line)
+
+    fig.update_layout(
+        width=400, height=300,
+        margin=dict(l=0, r=0, t=0, b=0),
+        paper_bgcolor='#fef9f5',
+        plot_bgcolor='#fef9f5',
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
+        shapes=[dict(type="circle", xref="x", yref="y", x0=-0.02, y0=-0.02, x1=0.02, y1=0.02, fillcolor="navy", line_color="navy")]
     )
 
     # 배경 설정
