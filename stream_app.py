@@ -203,7 +203,7 @@ def render_alert_message(df, current_date, dataset_label):
     message_md = f"""
     <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
         <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
-        <span style="color:black;">▶ 다음달 예측값은 ({yhat_val}) 입니다.</span><br>
+        <span style="color:black;">▶ 다음달 예측값은 {yhat_val} 입니다.</span><br>
     """
     if interpretation:
         message_md += f'<span style="color:black;">▶ {interpretation}</span><br>'
