@@ -146,17 +146,24 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 6. 경보 메시지 관련 함수
 # 경보 탑지 함수
-def render_alert_message(latest_df, current_date, dataset_label="병원 감염"):
-    current_date_str = pd.to_datetime(current_date).strftime('%Y-%m')
-    latest_df['ds_str'] = latest_df['ds'].dt.strftime('%Y-%m')
-    row = latest_df[latest_df['ds_str'] == current_date_str]
+def render_alert_message(df, current_date, dataset_label="감염"):
+    """
+    이상치 발생 여부에 따라 경보 메시지 출력
+    """
+    # 날짜 형식 통일
+    df['ds'] = pd.to_datetime(df['ds'])
+    current_date = pd.to_datetime(current_date)
 
+    current_date_str = current_date.strftime("%Y-%m")
+
+    # 해당 날짜의 행 찾기
+    row = df[df['ds'] == current_date]
     if row.empty:
         st.warning(f"⚠️ [{current_date_str}] 날짜에 해당하는 데이터가 없습니다.")
         return
 
     row = row.iloc[0]
-    is_alert = row['경보']
+    is_alert = row['경보']  # bool 타입
 
     if is_alert:
         try:
@@ -168,12 +175,11 @@ def render_alert_message(latest_df, current_date, dataset_label="병원 감염")
             message_md = f"""
             <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
                 <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] {dataset_label} 이상치 발생</span><br>
-                <span style="color:black;">▶ 현재값({current_val})이 예측 상한값({upper_val})을 초과하였습니다.</span><br>
+                <span style="color:black;">▶ 현재값 ({current_val})이 예측 상한값 ({upper_val})을 초과하였습니다.</span><br>
             """
 
-            if interpretation and isinstance(interpretation, str) and interpretation.strip() != "":
+            if isinstance(interpretation, str) and interpretation.strip():
                 message_md += f'<span style="color:black;">▶ {interpretation}</span><br>'
-
             message_md += "</div>"
 
             st.markdown(message_md, unsafe_allow_html=True)
@@ -182,13 +188,11 @@ def render_alert_message(latest_df, current_date, dataset_label="병원 감염")
             st.error(f"⚠️ 경보 메시지 처리 오류: {e}")
 
     else:
-        # 경보 없음
-        message_md = f"""
+        st.markdown(f"""
         <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
             <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span>
         </div>
-        """
-        st.markdown(message_md, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
 # 과거 경보 테이블 표시 함수
 def display_alert_table(df):
