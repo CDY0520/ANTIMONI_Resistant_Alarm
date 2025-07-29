@@ -472,8 +472,10 @@ with col1:
     else:
         # 병원/지역사회 감염 미선택 시 메시지
         st.markdown("""
-        <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
-            <span style="color:#f4c430; font-weight:bold;">⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.</span>
+        <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
+            <span style="color:#000000; font-weight:bold;">
+                ⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.
+            </span>
         </div>
         """, unsafe_allow_html=True)
 
