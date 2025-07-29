@@ -240,20 +240,21 @@ level_color_map = {
 
 # 8. 게이지 차트 함수
 def draw_gauge(level, color_hex=None):
-    # 값 체크
+    
+    # 경보 레벨 유효성 확인
     if level < 1 or level > 5:
         st.error("경보 레벨은 1~5 사이여야 합니다.")
         return
 
-    # 색상 설정
+    # 색상 및 라벨 설정
     level_colors = ['#00cc96', '#636efa', '#f4c430', '#ffa15a', '#ef553b']
     level_labels = ['1', '2', '3', '4', '5']
+    total_levels = 5
 
-    # 반원 게이지 구성 (go.Pie)
+    # 반원 게이지 구성
     fig = go.Figure()
-    
     fig.add_trace(go.Pie(
-        values=[20] * 5 + [100],
+        values=[20] * total_levels + [100],  # 마지막은 투명 채우기
         rotation=-270,
         hole=0.6,
         direction='clockwise',
@@ -264,9 +265,9 @@ def draw_gauge(level, color_hex=None):
         marker_colors=level_colors + ['rgba(0,0,0,0)'],
         hoverinfo='skip',
         showlegend=False
-))
-    
-    # 중앙 숫자 스타일 수정
+    ))
+
+    # 중앙 숫자 (검은색)
     fig.add_annotation(
         text=f"<b>{level}</b>",
         x=0.5, y=0.42,
@@ -274,55 +275,28 @@ def draw_gauge(level, color_hex=None):
         showarrow=False
     )
 
-    # 배경 색상 수정
-    fig.update_layout(
-        height=300,
-        margin=dict(t=30, b=0, l=10, r=10),
-        paper_bgcolor='#fef9f5',
-        plot_bgcolor='#fef9f5'  
-    )
-
-    # 바늘 좌표 계산 (가운데서 시작해서 해당 레벨 위치로)
-    angle_deg = 180 - (level - 1) * (180 / (total_levels - 1))
+    # 바늘 위치 계산 (중심 기준 각도, 시계방향 45도씩)
+    angle_deg = 180 - (level - 1) * 45
     angle_rad = np.radians(angle_deg)
-    x = 0.5 + 0.28 * np.cos(angle_rad)
-    y = 0.5 + 0.28 * np.sin(angle_rad)
+    x = 0.5 + 0.2 * np.cos(angle_rad)  # 바늘 길이
+    y = 0.5 + 0.2 * np.sin(angle_rad)
 
-    # 바늘 (흰색 선)
-    fig.add_shape(type='line',
-        x0=0.5, y0=0.5, x1=x, y1=y,
-        line=dict(color='white', width=4)
-    )
-
-    # 바늘 각도 조정: 180도 기준에서 시계방향 36도씩 이동
-    angle_deg = 180 - (level - 1) * 36 - 18
-    angle_rad = np.radians(angle_deg)
-
-    # 바늘 길이 매우 짧게 (0.05)
-    x = 0.5 + 0.01 * np.cos(angle_rad)
-    y = 0.5 + 0.01 * np.sin(angle_rad)
-
+    # 바늘 추가 (흰색)
     fig.add_shape(
         type='line',
         x0=0.5, y0=0.5, x1=x, y1=y,
         line=dict(color='white', width=4)
     )
 
-    # 중앙 숫자 약간 아래로 이동 (y=0.44)
-    fig.add_annotation(
-        text=f"<b>{level}</b>",
-        x=0.5, y=0.42,
-        font=dict(size=36, color='white', family='Noto Sans KR'),
-        showarrow=False
-    )
-
+    # 배경 설정
     fig.update_layout(
         height=300,
         margin=dict(t=30, b=0, l=10, r=10),
-        paper_bgcolor='#0E1117',
-        plot_bgcolor='#0E1117'
+        paper_bgcolor='#fef9f5',
+        plot_bgcolor='#fef9f5'
     )
 
+    # 스트림릿에 출력
     st.plotly_chart(fig, use_container_width=True)
 
 # 9. 경보 레벨 판단 함수
