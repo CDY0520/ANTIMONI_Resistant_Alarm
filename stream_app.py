@@ -197,34 +197,22 @@ def render_alert_message(df, current_date, dataset_label):
 
     # 📌 경보 메시지 상단 표시
     if is_alert:
-        try:
-            current_val = int(row['y']) if pd.notna(row['y']) else "값 없음"
-            upper_val = round(float(row['yhat_upper']), 2) if pd.notna(row['yhat_upper']) else "값 없음"
-            interpretation = row.get('경보해석', '')
+        current_val = int(row['y']) if pd.notna(row['y']) else "값 없음"
+        yhat_val = round(float(row['yhat']), 2) if pd.notna(row['yhat']) else "값 없음"
+        interpretation = row.get('경보해석', '')
 
-            # 메시지 구성
-            message_md = f"""
-            <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
-                <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
-                <span style="color:black;">▶ 현재값({current_val})이 예측 상한값({upper_val})을 초과하였습니다.</span><br>
-            """
-            
-            if isinstance(interpretation, str) and interpretation.strip():
-                message_md += f'<span style="color:black;">▶ {interpretation}</span><br>'
-            message_md += "</div>" 
-
-            st.markdown(message_md, unsafe_allow_html=True)
-            
-        except Exception as e:
-            st.error(f"⚠️ 경보 메시지 처리 오류: {e}")
-            
-    else:
-        # 이상치 없을 경우 메시지
-        st.markdown(f"""
+        # 메시지 구성
+        message_md = f"""
         <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
             <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
-        </div>
-        """, unsafe_allow_html=True)
+            <span style="color:black;">▶ 다음달 예측값은 ({yhat_val}) 입니다.</span><br>
+            <span style="color:black;">▶ {interpretation}</span><br>
+        """
+            
+        st.markdown(message_md, unsafe_allow_html=True)
+     
+    else:
+        st.error(f"⚠️ 경보 메시지 처리 오류: {e}")
 
 # 과거 경보 테이블 표시 함수
 def display_alert_table(df):
