@@ -215,7 +215,7 @@ def display_alert_table(df):
     alert_df['현재값'] = alert_df['현재값'].astype(int)
     alert_df['예측 상한값'] = alert_df['예측 상한값'].round(2)
 
-     if alert_df.empty:
+    if alert_df.empty:
         st.info("📭 과거 경보 내역이 없습니다.")
     else:
         # HTML 테이블 렌더링
