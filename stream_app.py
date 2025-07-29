@@ -163,6 +163,8 @@ def render_alert_message(df, current_date, dataset_label):
     """
     df = df.copy()
     df['ds'] = pd.to_datetime(df['ds'])
+    df['월'] = df['ds'].dt.strftime("%Y-%m")
+    
     df['경보'] = df['경보'].apply(lambda x: str(x).strip().upper() in ["TRUE", "1", "1.0", "T"])
 
     current_date = pd.to_datetime(current_date)
@@ -196,14 +198,13 @@ def render_alert_message(df, current_date, dataset_label):
     if is_alert:
         st.markdown(f"""
         <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
-            <span style="color:#D72638; font-weight:bold;">📌 [{current_date}] {status} - {desc}</span><br>
+            <span style="color:#D72638; font-weight:bold;">📌 [{current_date}] {status}: {desc}</span><br>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown(f"""
         <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
-            <span style="color:#D72638; font-weight:bold;">📌 [{current_date}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span><br>
-            ▶ {status} - {desc}
+            <span style="color:#D72638; font-weight:bold;">📌 [{current_date}] {status}: {desc}.</span><br>
         </div>
         """, unsafe_allow_html=True)
 
