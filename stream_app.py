@@ -86,11 +86,6 @@ def plot_graph(df, title_text, y_label, current_date):
     fig.patch.set_facecolor("#fef9f5")
     ax.set_facecolor("#fef9f5")
 
-    # 화변 비률 자동 조정
-    st.plotly_chart(fig, use_container_width=True)
-    st.dataframe(df, use_container_width=True)
-    st.pyplot(fig, use_container_width=True)
-
     # 신뢰구간
     ax.fill_between(df['ds'], df['yhat_lower'], df['yhat_upper'],
                     where=~df['yhat_lower'].isna(),
