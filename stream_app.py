@@ -139,9 +139,20 @@ def plot_graph(df, title_text, y_label, current_date):
     ordered_handles = [label_handle_map[lbl] for lbl in order if lbl in label_handle_map]
     ordered_labels = [lbl for lbl in order if lbl in label_handle_map]
 
-    ax.legend(ordered_handles, ordered_labels,
-              fontsize=6, markerscale=0.6, loc='upper left', frameon=False, prop=fontprop)
-
+    # 범례 표시
+    ax.legend(
+        ordered_handles,
+        ordered_labels,
+        fontsize=6,            # 글씨 크기 줄이기
+        markerscale=0.5,       # 마커 크기 줄이기
+        loc='upper left',
+        frameon=False,
+        labelspacing=0.3,      # 항목 간 간격
+        handlelength=1.0,      # 마커와 텍스트 거리
+        handletextpad=0.3,     # 마커와 텍스트 간격
+        borderpad=0.3,         # 범례 테두리와 내부 여백
+        prop=fontprop          # 폰트 설정
+    )
     st.pyplot(fig)
 
 # 6. 경보 메시지 관련 함수
