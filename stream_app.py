@@ -341,22 +341,7 @@ def get_integrated_alert_level(hospital_df, community_df, current_date):
     color_hex = level_color_map.get(level, "#000000")
     return level, color_hex
 
-# 10. 하단 3열: 경보 레벨 체계 / 병원 과거 경보 / 지역사회 과거 경보
-bottom_col1, bottom_col2, bottom_col3 = st.columns([1, 2, 2])
-
-with bottom_col1:
-    st.markdown("### 📘 경보 레벨 체계 (5단계)")
-    st.markdown(alert_level_legend_html, unsafe_allow_html=True)
-
-with bottom_col2:
-    st.markdown("### 🏥 과거 경보 내역 (병원 감염)")
-    st.dataframe(hospital_alert_df, use_container_width=True)
-
-with bottom_col3:
-    st.markdown("### 🌐 과거 경보 내역 (지역사회 감염)")
-    st.dataframe(community_alert_df, use_container_width=True)
-
-# 11. 3분할 레이아웃
+# 10. 3분할 레이아웃
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 
 # ------------------------
