@@ -374,6 +374,10 @@ with col3:
 with col1:
     st.markdown("#### 🔔 통합 경보")
     st.markdown(" ")
+    st.markdown(" ")
+    st.markdown(" ")
+    st.markdown(" ")
+    st.markdown(" ")
     
     if hospital_df is not None and community_df is not None:
         level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
