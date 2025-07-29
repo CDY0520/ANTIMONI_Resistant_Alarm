@@ -197,6 +197,7 @@ def render_alert_message(df, current_date, dataset_label):
 
    # 해석 텍스트
     interpretation = row.get('경보해석', '').strip()
+    yhat_val = round(float(row['yhat']), 2) if pd.notna(row.get('yhat')) else "값 없음"
 
     # 메시지 출력
     message_md = f"""
