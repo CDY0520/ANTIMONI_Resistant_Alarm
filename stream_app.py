@@ -33,7 +33,7 @@ st.set_page_config(layout="wide")
 st.markdown(
     """
     <div style="background-color: #2B3F73; padding: 20px; border-radius: 10px; text-align: center;">
-        <h1 style="color: white; font-family: 'Noto Sans KR', sans-serif;">이상치 탐지 모니터링</h3>
+        <h3 style="color: white; font-family: 'Noto Sans KR', sans-serif;">이상치 탐지 모니터링</h3>
     </div>
     """,
     unsafe_allow_html=True
