@@ -157,53 +157,55 @@ def plot_graph(df, title_text, y_label, current_date):
 
 # 6. 경보 메시지 관련 함수
 # 경보 탑지 함수
-def render_alert_message(df, current_date, dataset_label="감염"):
+def render_alert_message(df, current_date, dataset_label):
     """
-    이상치 발생 여부에 따라 경보 메시지 출력
+    현재 날짜 기준 경보 메시지를 해석해서 출력합니다.
     """
-    # 날짜 형식 통일
+    df = df.copy()
     df['ds'] = pd.to_datetime(df['ds'])
-    current_date = pd.to_datetime(current_date)
+    df['경보'] = df['경보'].apply(lambda x: str(x).strip().upper() in ["TRUE", "1", "1.0", "T"])
+    df['월'] = df['ds'].dt.strftime("%Y-%m")
 
-    current_date_str = current_date.strftime("%Y-%m")
-
-    # 해당 날짜의 행 찾기
-    row = df[df['ds'] == current_date]
-    if row.empty:
-        st.warning(f"⚠️ [{current_date_str}] 날짜에 해당하는 데이터가 없습니다.")
+    current_row = df[df['월'] == current_date]
+    if current_row.empty:
+        st.warning("⚠️ 해당 날짜의 데이터를 찾을 수 없습니다.")
         return
 
-    row = row.iloc[0]
-    is_alert = row['경보']  # bool 타입
+    row = current_row.iloc[0]
+    current_val = int(row['y'])
+    threshold = row['yhat_upper']
+    is_alert = row['경보']
 
-    if is_alert:
-        try:
-            current_val = int(row['y']) if pd.notna(row['y']) else "값 없음"
-            upper_val = round(float(row['yhat_upper']), 2) if pd.notna(row['yhat_upper']) else "값 없음"
-            interpretation = row.get('경보해석', '')
+    # 이상치 판정 횟수 계산 (최근 2개월 포함)
+    recent_rows = df[df['ds'] <= row['ds']].tail(2)
+    alert_count = recent_rows['경보'].sum()
 
-            # 메시지 구성
-            message_md = f"""
-            <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
-                <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] {dataset_label} 이상치 발생</span><br>
-                <span style="color:black;">▶ 현재값({current_val})이 예측 상한값({upper_val})을 초과하였습니다.</span><br>
-            """
-
-            if isinstance(interpretation, str) and interpretation.strip():
-                message_md += f'<span style="color:black;">▶ {interpretation}</span><br>'
-            message_md += "</div>"
-
-            st.markdown(message_md, unsafe_allow_html=True)
-
-        except Exception as e:
-            st.error(f"⚠️ 경보 메시지 처리 오류: {e}")
-
+    # 상태 메시지 결정
+    if alert_count >= 2:
+        status = "🔴 경고"
+        desc = "이상치 2회 이상 발생"
+    elif alert_count == 1:
+        status = "🟡 주의"
+        desc = "이상치 1회 발생"
     else:
+        status = "🟢 정상"
+        desc = "이상치 없음"
+
+    # 📌 경보 메시지 상단 표시
+    if is_alert:
         st.markdown(f"""
-        <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
-            <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span>
+        <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
+            <span style="color:#D72638; font-weight:bold;">📌 [{current_date}] {status} - {desc}</span><br>
         </div>
         """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
+            <span style="color:#D72638; font-weight:bold;">📌 [{current_date}] 현재 이상치가 발생하지 않아 경보가 없습니다.</span><br>
+            ▶ {status} - {desc}
+        </div>
+        """, unsafe_allow_html=True)
+
 
 # 과거 경보 테이블 표시 함수
 def display_alert_table(df):
