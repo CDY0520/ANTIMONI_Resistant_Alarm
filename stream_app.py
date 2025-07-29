@@ -343,25 +343,10 @@ def get_integrated_alert_level(hospital_df, community_df, current_date):
 
 # 10. 3분할 레이아웃 (고정된 정렬 구조)
 
-# ✅ 병원/지역사회 선택 먼저 받기 (오류 방지용)
-hospital_options = ["선택"] + list(hospital_file_map.keys())
-hospital_choice = st.selectbox("🏥 병원 감염", hospital_options, index=0, key="hospital_select")
-
-community_options = ["선택"] + list(community_file_map.keys())
-community_choice = st.selectbox("🌐 지역사회 감염", community_options, index=0, key="community_select")
-
-# 병원, 지역사회 선택 후에만 진행
-if hospital_choice != "선택":
-    hospital_df = data_dict[hospital_choice]
-    y_label_hospital = hospital_file_map[hospital_choice][2]
-else:
-    hospital_df = None
-
-if community_choice != "선택":
-    community_df = data_dict[community_choice]
-    y_label_community = community_file_map[community_choice][2]
-else:
-    community_df = None
+# 변수 초기화
+hospital_df, community_df = None, None
+hospital_choice, community_choice = None, None
+y_label_hospital, y_label_community = None, None
 
 # 🔷 1번째 3열: 게이지 + 병원 그래프 + 지역사회 그래프
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
@@ -375,13 +360,24 @@ with col1:
         st.markdown("<br><br>", unsafe_allow_html=True)  # 빈칸 유지용
 
 with col2:
-    if hospital_df is not None:
+    st.markdown("#### 🏥 병원 감염")
+    hospital_options = ["선택"] + list(hospital_file_map.keys())
+    hospital_choice = st.selectbox("", hospital_options, index=0, key="hospital_select")
+
+    if hospital_choice != "선택":
+        hospital_df = data_dict[hospital_choice]
+        y_label_hospital = hospital_file_map[hospital_choice][2]
         plot_graph(hospital_df, "병원 감염 이상치 예측", y_label_hospital, current_date)
 
 with col3:
-    if community_df is not None:
-        plot_graph(community_df, "지역사회 감염 이상치 예측", y_label_community, current_date)
+    st.markdown("#### 🌐 지역사회 감염")
+    community_options = ["선택"] + list(community_file_map.keys())
+    community_choice = st.selectbox("", community_options, index=0, key="community_select")
 
+    if community_choice != "선택":
+        community_df = data_dict[community_choice]
+        y_label_community = community_file_map[community_choice][2]
+        plot_graph(community_df, "지역사회 감염 이상치 예측", y_label_community, current_date)
 
 # 🟨 2번째 3열: 빈칸 + 병원 메시지 + 지역사회 메시지
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
