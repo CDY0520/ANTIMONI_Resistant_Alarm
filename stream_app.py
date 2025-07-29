@@ -143,14 +143,14 @@ def plot_graph(df, title_text, y_label, current_date):
     ax.legend(
         ordered_handles,
         ordered_labels,
-        fontsize=6,            # 글씨 크기 줄이기
-        markerscale=0.5,       # 마커 크기 줄이기
+        fontsize=4,            # 글씨 크기 줄이기
+        markerscale=0.3,       # 마커 크기 줄이기
         loc='upper left',
         frameon=False,
-        labelspacing=0.3,      # 항목 간 간격
-        handlelength=1.0,      # 마커와 텍스트 거리
-        handletextpad=0.3,     # 마커와 텍스트 간격
-        borderpad=0.3,         # 범례 테두리와 내부 여백
+        labelspacing=0.2,      # 항목 간 간격
+        handlelength=0.8,      # 마커와 텍스트 거리
+        handletextpad=0.2,     # 마커와 텍스트 간격
+        borderpad=0.2,         # 범례 테두리와 내부 여백
         prop=fontprop          # 폰트 설정
     )
     st.pyplot(fig)
