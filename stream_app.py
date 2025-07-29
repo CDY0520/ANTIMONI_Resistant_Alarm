@@ -344,6 +344,29 @@ def get_integrated_alert_level(hospital_df, community_df, current_date):
 # 10. 3분할 레이아웃
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 
+with col1:
+    st.markdown("#### 🔔 통합 경보")
+    st.markdown("#### ")
+
+    if (
+        'hospital_df' in locals() and hospital_choice != "선택" and
+        'community_df' in locals() and community_choice != "선택"
+    ):
+        level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
+        draw_gauge(level, color_hex)
+    else:
+        st.markdown("""<div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
+            <span style="color:#000000; font-weight:bold;">⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.</span>
+        </div>""", unsafe_allow_html=True)
+
+with col2:
+    if hospital_choice != "선택":
+        plot_graph(hospital_df, "병원 감염 이상치 예측", y_label_hospital, current_date)
+
+with col3:
+    if community_choice != "선택":
+        plot_graph(community_df, "지역사회 감염 이상치 예측", y_label_community, current_date)
+
 # ------------------------
 # ✅ col2: 병원 감염 영역
 # ------------------------
