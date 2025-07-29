@@ -343,6 +343,13 @@ def get_integrated_alert_level(hospital_df, community_df, current_date):
 
 # 10. 3분할 레이아웃 (고정된 정렬 구조)
 
+# ✅ 병원/지역사회 선택 먼저 받기 (오류 방지용)
+hospital_options = ["선택"] + list(hospital_file_map.keys())
+hospital_choice = st.selectbox("🏥 병원 감염", hospital_options, index=0, key="hospital_select")
+
+community_options = ["선택"] + list(community_file_map.keys())
+community_choice = st.selectbox("🌐 지역사회 감염", community_options, index=0, key="community_select")
+
 # 병원, 지역사회 선택 후에만 진행
 if hospital_choice != "선택":
     hospital_df = data_dict[hospital_choice]
