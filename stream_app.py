@@ -393,7 +393,6 @@ with col3:
     if community_df is not None:
         render_alert_message(community_df, current_date, dataset_label="지역사회 감염")
 
-
 # 🟥 3번째 3열: 경보레벨표 + 병원 과거 경보 + 지역사회 과거 경보
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 
