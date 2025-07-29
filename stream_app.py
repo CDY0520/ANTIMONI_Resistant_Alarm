@@ -341,139 +341,91 @@ def get_integrated_alert_level(hospital_df, community_df, current_date):
     color_hex = level_color_map.get(level, "#000000")
     return level, color_hex
 
-# 10. 3분할 레이아웃
+# 10. 3분할 레이아웃 (고정된 정렬 구조)
+
+# 병원, 지역사회 선택 후에만 진행
+if hospital_choice != "선택":
+    hospital_df = data_dict[hospital_choice]
+    y_label_hospital = hospital_file_map[hospital_choice][2]
+else:
+    hospital_df = None
+
+if community_choice != "선택":
+    community_df = data_dict[community_choice]
+    y_label_community = community_file_map[community_choice][2]
+else:
+    community_df = None
+
+# 🔷 1번째 3열: 게이지 + 병원 그래프 + 지역사회 그래프
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 
 with col1:
     st.markdown("#### 🔔 통합 경보")
-    st.markdown("#### ")
-
-    if (
-        'hospital_df' in locals() and hospital_choice != "선택" and
-        'community_df' in locals() and community_choice != "선택"
-    ):
+    if hospital_df is not None and community_df is not None:
         level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
         draw_gauge(level, color_hex)
     else:
-        st.markdown("""<div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
-            <span style="color:#000000; font-weight:bold;">⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.</span>
-        </div>""", unsafe_allow_html=True)
+        st.markdown("<br><br>", unsafe_allow_html=True)  # 빈칸 유지용
 
 with col2:
-    if hospital_choice != "선택":
+    if hospital_df is not None:
         plot_graph(hospital_df, "병원 감염 이상치 예측", y_label_hospital, current_date)
 
 with col3:
-    if community_choice != "선택":
+    if community_df is not None:
         plot_graph(community_df, "지역사회 감염 이상치 예측", y_label_community, current_date)
 
-# ------------------------
-# ✅ col2: 병원 감염 영역
-# ------------------------
+
+# 🟨 2번째 3열: 빈칸 + 병원 메시지 + 지역사회 메시지
+col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
+
+with col1:
+    st.markdown(" ")  # 통합 경보 메시지 없음 → 빈칸 처리
+
 with col2:
-    st.markdown("#### 🏥 병원 감염")
-
-    # 감염 종류 선택 (선택 옵션 추가)
-    hospital_options = ["선택"] + list(hospital_file_map.keys())
-    hospital_choice = st.selectbox("", hospital_options, index=0, key="hospital_select")
-
-    if hospital_choice != "선택":
-        hospital_df = data_dict[hospital_choice]
-        y_label_hospital = hospital_file_map[hospital_choice][2]
-
-        # 병원 감염 그래프
-        plot_graph(
-            df=hospital_df,
-            title_text="병원 감염 이상치 예측",
-            y_label=y_label_hospital,
-            current_date=current_date
-        )
-
-        # 현재 경보 메시지
+    if hospital_df is not None:
         render_alert_message(hospital_df, current_date, dataset_label="병원 감염")
 
-        # 과거 경보 내역
+with col3:
+    if community_df is not None:
+        render_alert_message(community_df, current_date, dataset_label="지역사회 감염")
+
+
+# 🟥 3번째 3열: 경보레벨표 + 병원 과거 경보 + 지역사회 과거 경보
+col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
+
+with col1:
+    st.markdown("#### 경보 레벨 체계 (5단계)")
+    level_rows = [
+        ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
+        ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
+        ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
+        ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
+        ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
+    ]
+    st.markdown("""
+    <style>
+    .custom-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
+    }
+    .custom-table td {
+        border: none;
+        padding: 6px;
+    }
+    </style>
+    <table class="custom-table">
+    """ + "".join([
+        f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
+    ]) + "</table>", unsafe_allow_html=True)
+
+with col2:
+    if hospital_df is not None:
         st.markdown("#### 과거 경보 내역")
         display_alert_table(hospital_df)
 
-# ------------------------
-# ✅ col3: 지역사회 감염 영역
-# ------------------------
 with col3:
-    st.markdown("#### 🌐 지역사회 감염")
-
-    community_options = ["선택"] + list(community_file_map.keys())
-    community_choice = st.selectbox("", community_options, index=0, key="community_select")
-
-    if community_choice != "선택":
-        community_df = data_dict[community_choice]
-        y_label_community = community_file_map[community_choice][2]
-
-        # 지역사회 감염 그래프
-        plot_graph(
-            df=community_df,
-            title_text="지역사회 감염 이상치 예측",
-            y_label=y_label_community,
-            current_date=current_date
-        )
-
-        # 현재 경보 메시지
-        render_alert_message(community_df, current_date, dataset_label="지역사회 감염")
-
-        # 과거 경보 내역
+    if community_df is not None:
         st.markdown("#### 과거 경보 내역")
         display_alert_table(community_df)
-        
-# ------------------------
-# ✅ col1: 통합 경보 영역 (hospital_df & community_df 정의 이후로 이동)
-# ------------------------
-with col1:
-    st.markdown("#### 🔔 통합 경보")
-    st.markdown("#### ")
-
-    if (
-        'hospital_df' in locals() and hospital_choice != "선택" and
-        'community_df' in locals() and community_choice != "선택"
-    ):
-        level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
-
-        # 바늘형 게이지 차트 시각화
-        draw_gauge(level, color_hex)
-
-        # 경보 체계 설명표
-        st.markdown("#### 경보 레벨 체계 (5단계)")
-        level_rows = [
-            ("1단계", "안정", "🟢", "병원 감염 및 지역사회 감염 모두 안정"),
-            ("2단계", "관찰", "🔵", "지역사회 감염 위험 존재"),
-            ("3단계", "주의(경미)", "🟡", "병원 감염 이상치 1회"),
-            ("4단계", "주의(강화)", "🟠", "병원 감염 이상치 1회 + 지역사회 감염 위험"),
-            ("5단계", "경보", "🔴", "병원 감염 이상치 2개월 연속")
-        ]
-        st.markdown("""
-        <style>
-        .custom-table {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 14px;
-        }
-        .custom-table td {
-            border: none;
-            padding: 6px;
-        }
-        </style>
-        <table class="custom-table">
-        """ + "".join([
-            f"<tr>{''.join([f'<td>{cell}</td>' for cell in row])}</tr>" for row in level_rows
-        ]) + "</table>", unsafe_allow_html=True)
-
-    else:
-        # 병원/지역사회 감염 미선택 시 메시지
-        st.markdown("""
-        <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
-            <span style="color:#000000; font-weight:bold;">
-                ⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
-
-
