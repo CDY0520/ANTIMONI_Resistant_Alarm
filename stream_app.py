@@ -376,8 +376,7 @@ with col2:
         )
 
         # 현재 경보 메시지
-        latest_hosp = hospital_df[hospital_df['ds'] == hospital_df['ds'].max()]
-        render_alert_message(latest_hosp, current_date, dataset_label="병원 감염")
+        render_alert_message(hospital_df, current_date, dataset_label="병원 감염")
 
         # 과거 경보 내역
         st.markdown("### 과거 경보 내역")
@@ -405,8 +404,7 @@ with col3:
         )
 
         # 현재 경보 메시지
-        latest_comm = community_df[community_df['ds'] == community_df['ds'].max()]
-        render_alert_message(latest_comm, current_date, dataset_label="지역사회 감염")
+        render_alert_message(community_df, current_date, dataset_label="지역사회 감염")
 
         # 과거 경보 내역
         st.markdown("### 과거 경보 내역")
