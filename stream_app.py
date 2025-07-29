@@ -357,7 +357,7 @@ col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 # ✅ col2: 병원 감염 영역
 # ------------------------
 with col2:
-    st.markdown("### 🏥 병원 감염")
+    st.markdown("#### 🏥 병원 감염")
 
     # 감염 종류 선택 (선택 옵션 추가)
     hospital_options = ["선택"] + list(hospital_file_map.keys())
@@ -386,7 +386,7 @@ with col2:
 # ✅ col3: 지역사회 감염 영역
 # ------------------------
 with col3:
-    st.markdown("### 🌐 지역사회 감염")
+    st.markdown("#### 🌐 지역사회 감염")
 
     community_options = ["선택"] + list(community_file_map.keys())
     community_choice = st.selectbox("", community_options, index=0, key="community_select")
