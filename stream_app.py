@@ -147,8 +147,9 @@ def plot_graph(df, title_text, y_label, current_date):
 # 6. 경보 메시지 관련 함수
 # 경보 탑지 함수
 def render_alert_message(latest_df, current_date, dataset_label="병원 감염"):
-    current_date_str = pd.to_datetime(current_date).strftime("%Y-%m")
-    row = latest_df[latest_df['ds'] == current_date_str]
+    current_date_str = pd.to_datetime(current_date).strftime('%Y-%m')
+    latest_df['ds_str'] = latest_df['ds'].dt.strftime('%Y-%m')
+    row = latest_df[latest_df['ds_str'] == current_date_str]
 
     if row.empty:
         st.warning(f"⚠️ [{current_date_str}] 날짜에 해당하는 데이터가 없습니다.")
