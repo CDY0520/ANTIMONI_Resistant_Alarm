@@ -260,11 +260,12 @@ def draw_gauge(level, color_hex=None):
         text=level_labels + [''],
         textinfo='text',
         textposition='inside',
+        insidetextfont=dict(color='black', size=12),
         marker_colors=level_colors + ['rgba(0,0,0,0)'],
         hoverinfo='skip',
         showlegend=False
-    ))
-
+))
+    
     # 중앙 숫자 스타일 수정
     fig.add_annotation(
         text=f"<b>{level}</b>",
@@ -297,9 +298,9 @@ def draw_gauge(level, color_hex=None):
     angle_deg = 180 - (level - 1) * 36 - 18
     angle_rad = np.radians(angle_deg)
 
-    # 바늘 길이 짧게 (0.3), 시작점 0.5 → 중심에서 시작
-    x = 0.5 + 0.1 * np.cos(angle_rad)
-    y = 0.5 + 0.1 * np.sin(angle_rad)
+    # 바늘 길이 매우 짧게 (0.05)
+    x = 0.5 + 0.05 * np.cos(angle_rad)
+    y = 0.5 + 0.05 * np.sin(angle_rad)
 
     fig.add_shape(
         type='line',
