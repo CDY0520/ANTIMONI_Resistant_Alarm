@@ -197,7 +197,7 @@ def render_alert_message(df, current_date, dataset_label="감염"):
 # 과거 경보 테이블 표시 함수
 def display_alert_table(df):
     """
-    과거 경보 내역을 HTML 테이블로 가운데 정렬하여 표시합니다.
+    과거 경보 내역을 테이블로 표시합니다.
     """
     df = df.copy()
     df['ds'] = pd.to_datetime(df['ds'])
@@ -217,59 +217,16 @@ def display_alert_table(df):
 
     if alert_df.empty:
         st.info("📭 과거 경보 내역이 없습니다.")
-        return
-
-    # HTML 테이블 구성 (가운데 정렬 및 다크모드에 어울리는 스타일 포함)
-    table_html = """
-    <style>
-    .centered-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-    }
-    .centered-table th, .centered-table td {
-        border: 1px solid #444;
-        padding: 8px;
-        text-align: center;
-    }
-    .centered-table th {
-        background-color: #222;
-        color: white;
-    }
-    .centered-table td {
-        background-color: #111;
-        color: #eee;
-    }
-    </style>
-    <table class="centered-table">
-        <thead>
-            <tr>
-                <th>경보 발생 시점</th>
-                <th>현재값</th>
-                <th>예측 상한값</th>
-            </tr>
-        </thead>
-        <tbody>
-    """
-
-    # 본문 행 구성
-    for _, row in alert_df.iterrows():
-        table_html += f"""
-            <tr>
-                <td>{row['경보 발생 시점']}</td>
-                <td>{row['현재값']}</td>
-                <td>{row['예측 상한값']:.2f}</td>
-            </tr>
-        """
-
-    # 닫는 태그
-    table_html += """
-        </tbody>
-    </table>
-    """
-
-    # 표 출력
-    st.markdown(table_html, unsafe_allow_html=True)
+    else:
+        styled_table = (
+            alert_df.style
+            .format({'예측 상한값': '{:.2f}'})  # 소수점 2자리
+            .set_properties(**{'text-align': 'center'})  # 셀 가운데 정렬
+            .set_table_styles([
+                {'selector': 'th', 'props': [('text-align', 'center')]}  # 컬럼명 가운데 정렬
+            ])
+        )
+        st.dataframe(styled_table, use_container_width=True, hide_index=True)
 
 # 7. 경보 레벨 색상 매핑
 level_color_map = {
