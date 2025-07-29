@@ -351,20 +351,6 @@ y_label_hospital, y_label_community = None, None
 # 🔷 1번째 3열: 게이지 + 병원 그래프 + 지역사회 그래프
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
 
-with col1:
-    st.markdown("#### 🔔 통합 경보")
-    if hospital_df is not None and community_df is not None:
-        level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
-        draw_gauge(level, color_hex)
-    else:
-        st.markdown("""
-        <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
-            <span style="color:#000000; font-weight:bold;">
-                ⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
-
 with col2:
     st.markdown("#### 🏥 병원 감염")
     hospital_options = ["선택"] + list(hospital_file_map.keys())
@@ -384,6 +370,20 @@ with col3:
         community_df = data_dict[community_choice]
         y_label_community = community_file_map[community_choice][2]
         plot_graph(community_df, "지역사회 감염 이상치 예측", y_label_community, current_date)
+
+with col1:
+    st.markdown("#### 🔔 통합 경보")
+    if hospital_df is not None and community_df is not None:
+        level, color_hex = get_integrated_alert_level(hospital_df, community_df, current_date)
+        draw_gauge(level, color_hex)
+    else:
+        st.markdown("""
+        <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
+            <span style="color:#000000; font-weight:bold;">
+                ⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
 
 # 🟨 2번째 3열: 빈칸 + 병원 메시지 + 지역사회 메시지
 col1, col2, col3 = st.columns([1.1, 1.5, 1.5])
