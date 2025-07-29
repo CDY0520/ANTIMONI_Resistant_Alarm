@@ -169,6 +169,7 @@ def render_alert_message(df, current_date, dataset_label):
 
     current_date = pd.to_datetime(current_date)
     current_row = df[df['ds'] == current_date]
+    current_date_str = pd.to_datetime(current_date).strftime("%Y-%m")
 
     if current_row.empty:
         st.warning("⚠️ 해당 날짜의 데이터를 찾을 수 없습니다.")
@@ -198,13 +199,13 @@ def render_alert_message(df, current_date, dataset_label):
     if is_alert:
         st.markdown(f"""
         <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
-            <span style="color:#D72638; font-weight:bold;">📌 [{current_date}] {status}: {desc}</span><br>
+            <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown(f"""
         <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
-            <span style="color:#D72638; font-weight:bold;">📌 [{current_date}] {status}: {desc}.</span><br>
+            <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
         </div>
         """, unsafe_allow_html=True)
 
