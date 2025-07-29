@@ -196,9 +196,6 @@ def render_alert_message(df, current_date, dataset_label="감염"):
 
 # 과거 경보 테이블 표시 함수
 def display_alert_table(df):
-    """
-    과거 경보 내역을 테이블로 표시합니다.
-    """
     df = df.copy()
     df['ds'] = pd.to_datetime(df['ds'])
     df['월'] = df['ds'].dt.strftime("%Y-%m")
@@ -217,48 +214,55 @@ def display_alert_table(df):
 
     if alert_df.empty:
         st.info("📭 과거 경보 내역이 없습니다.")
-    else:
-        # HTML 테이블 렌더링
-        table_html = """
-        <style>
-        .centered-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        .centered-table th, .centered-table td {
-            border: 1px solid #444;
-            padding: 8px;
-            text-align: center;
-        }
-        .centered-table th {
-            background-color: #1e1e1e;
-            color: white;
-        }
-        </style>
-        <table class="centered-table">
-            <thead>
-                <tr>
-                    <th>경보 발생 시점</th>
-                    <th>현재값</th>
-                    <th>예측 상한값</th>
-                </tr>
-            </thead>
-            <tbody>
+        return
+
+    # HTML 테이블 구성
+    table_html = """
+    <style>
+    .centered-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .centered-table th, .centered-table td {
+        border: 1px solid #444;
+        padding: 8px;
+        text-align: center;
+    }
+    .centered-table th {
+        background-color: #1e1e1e;
+        color: white;
+    }
+    </style>
+    <table class="centered-table">
+        <thead>
+            <tr>
+                <th>경보 발생 시점</th>
+                <th>현재값</th>
+                <th>예측 상한값</th>
+            </tr>
+        </thead>
+        <tbody>
+    """
+
+    # 테이블 본문 내용
+    for _, row in alert_df.iterrows():
+        table_html += f"""
+            <tr>
+                <td>{row['경보 발생 시점']}</td>
+                <td>{row['현재값']}</td>
+                <td>{row['예측 상한값']:.2f}</td>
+            </tr>
         """
 
-        for _, row in alert_df.iterrows():
-            table_html += f"""
-                <tr>
-                    <td>{row['경보 발생 시점']}</td>
-                    <td>{row['현재값']}</td>
-                    <td>{row['예측 상한값']:.2f}</td>
-                </tr>
-            """
+    # 테이블 마감
+    table_html += """
+        </tbody>
+    </table>
+    """
 
-        table_html += "</tbody></table>"
-
-        st.markdown(table_html, unsafe_allow_html=True)
+    # HTML 테이블 렌더링
+    st.markdown(table_html, unsafe_allow_html=True)
 
 # 7. 경보 레벨 색상 매핑
 level_color_map = {
