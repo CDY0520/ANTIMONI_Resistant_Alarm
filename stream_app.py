@@ -153,7 +153,7 @@ def plot_graph(df, title_text, y_label, current_date):
         borderpad=0.2,         # 범례 테두리와 내부 여백
         prop=fontprop          # 폰트 설정
     )
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=True)
 
 # 6. 경보 메시지 관련 함수
 # 경보 탑지 함수
@@ -201,7 +201,7 @@ def render_alert_message(df, current_date, dataset_label):
 
     # 메시지 출력
     message_md = f"""
-    <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
+    <div style="background-color:#fef9f5; max-width: 100%; padding:10px; border-radius:8px;">
         <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
         <span style="color:black;">▶ 다음달 예측값은 {yhat_val} 입니다.</span><br>
     """
