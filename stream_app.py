@@ -302,6 +302,12 @@ def draw_gauge(level, color_hex=None):
         showarrow=False
     )
 
+    # 바늘 위치 계산 (중심 기준 각도, 시계방향 45도씩)
+    angle_deg = 180 - ((level - 0.5) * 36) - 8
+    angle_rad = np.radians(angle_deg)
+    x = 0.5 + 0.2 * np.cos(angle_rad)  # 바늘 길이
+    y = 0.5 + 0.2 * np.sin(angle_rad)
+
     # 바늘 삼각형 좌표
     needle = go.Scatter(
         x=[0, -0.02, 0.02, 0],
@@ -320,12 +326,6 @@ def draw_gauge(level, color_hex=None):
         line=dict(color='navy', width=4),
         showlegend=False
     )
-
-    # 바늘 위치 계산 (중심 기준 각도, 시계방향 45도씩)
-    angle_deg = 180 - ((level - 0.5) * 36) - 8
-    angle_rad = np.radians(angle_deg)
-    x = 0.5 + 0.2 * np.cos(angle_rad)  # 바늘 길이
-    y = 0.5 + 0.2 * np.sin(angle_rad)
 
     # 바늘 추가
     fig.add_trace(needle_line)
