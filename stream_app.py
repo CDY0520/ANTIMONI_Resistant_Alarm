@@ -175,7 +175,7 @@ def render_alert_message(df, current_date, dataset_label="감염"):
             message_md = f"""
             <div style="background-color:#fcf8f2; padding:10px; border-radius:8px;">
                 <span style="color:#FF4B4B; font-weight:bold;">📌 [{current_date_str}] {dataset_label} 이상치 발생</span><br>
-                <span style="color:black;">▶ 현재값 ({current_val})이 예측 상한값 ({upper_val})을 초과하였습니다.</span><br>
+                <span style="color:black;">▶ 현재값({current_val})이 예측 상한값({upper_val})을 초과하였습니다.</span><br>
             """
 
             if isinstance(interpretation, str) and interpretation.strip():
