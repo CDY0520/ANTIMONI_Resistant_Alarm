@@ -412,7 +412,7 @@ with col1:
         draw_gauge(level, color_hex)
     else:
         st.markdown("""
-        <div class="responsive-box" style="background-color:#fef9f5; padding:10px; border-radius:16px; height: 370px;">
+        <div class="responsive-box" style="background-color:#fef9f5; padding:10px; border-radius:16px; height:370px;">
             <span style="color:#000000; font-weight:bold;">
                 ⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.
             </span>
