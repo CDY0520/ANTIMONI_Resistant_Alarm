@@ -25,6 +25,17 @@ else:
     plt.rcParams['font.family'] = fontprop.get_name()
     plt.rcParams['axes.unicode_minus'] = False
 
+# 자동 비율 설정
+st.markdown("""
+    <style>
+    .responsive-box {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # 1. Streamlit UI 시작
 # 페이지 설정
 st.set_page_config(layout="wide")
@@ -32,7 +43,7 @@ st.set_page_config(layout="wide")
 # 제목 박스: 사용자 정의 배경색 + 중앙 정렬 텍스트
 st.markdown(
     """
-    <div style="background-color: #2B3F73; padding: 20px; border-radius: 10px; text-align: center;">
+    <div class="responsive-box" style="background-color: #2B3F73; padding: 20px; border-radius: 10px; text-align: center;">
         <h3 style="color: white; font-family: 'Noto Sans KR', sans-serif;">이상치 탐지 모니터링</h3>
     </div>
     """,
@@ -201,7 +212,7 @@ def render_alert_message(df, current_date, dataset_label):
 
     # 메시지 출력
     message_md = f"""
-    <div style="background-color:#fef9f5; max-width: 100%; padding:10px; border-radius:8px;">
+    <div class="responsive-box" style="background-color:#fef9f5; max-width: 100%; padding:10px; border-radius:8px;">
         <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
         <span style="color:black;">▶ 다음달 예측값은 {yhat_val} 입니다.</span><br>
     """
@@ -401,7 +412,7 @@ with col1:
         draw_gauge(level, color_hex)
     else:
         st.markdown("""
-        <div style="background-color:#fef9f5; padding:10px; border-radius:8px;">
+        <div class="responsive-box" style="background-color:#fef9f5; padding:10px; border-radius:8px;">
             <span style="color:#000000; font-weight:bold;">
                 ⚠️ 병원 감염과 지역사회 감염 항목을 선택하면 통합 경보가 표시됩니다.
             </span>
