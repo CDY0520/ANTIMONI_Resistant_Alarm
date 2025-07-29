@@ -299,8 +299,8 @@ def draw_gauge(level, color_hex=None):
     angle_rad = np.radians(angle_deg)
 
     # 바늘 길이 매우 짧게 (0.05)
-    x = 0.5 + 0.03 * np.cos(angle_rad)
-    y = 0.5 + 0.03 * np.sin(angle_rad)
+    x = 0.5 + 0.01 * np.cos(angle_rad)
+    y = 0.5 + 0.01 * np.sin(angle_rad)
 
     fig.add_shape(
         type='line',
