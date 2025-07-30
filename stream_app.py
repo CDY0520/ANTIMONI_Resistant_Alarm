@@ -181,7 +181,7 @@ def render_alert_message(df, current_date, dataset_label):
     current_date = pd.to_datetime(current_date)
     current_row = df[df['ds'] == current_date]
     current_date_str = pd.to_datetime(current_date).strftime("%Y-%m")
-
+    
     if current_row.empty:
         st.warning(f"⚠️ {current_date_str}에 해당하는 데이터를 찾을 수 없습니다.")
         return
@@ -208,13 +208,22 @@ def render_alert_message(df, current_date, dataset_label):
 
    # 해석 텍스트
     interpretation = row.get('경보해석', '').strip()
-    yhat_val = round(float(row['yhat']), 2) if pd.notna(row.get('yhat')) else "값 없음"
+
+    # 다음 행의 yhat 값 가져오기
+    current_idx = df.index[df['ds'] == current_date]
+    
+    if not current_idx.empty and current_idx[0] + 1 < len(df):
+        next_yhat = df.loc[current_idx[0] + 1, 'yhat']
+    else:
+        next_yhat = None
+    
+
 
     # 메시지 출력
     message_md = f"""
     <div class="responsive-box" style="background-color:#fef9f5; max-width: 100%; padding:10px; border-radius:8px;">
         <span style="color:#D72638; font-weight:bold;">📌 [{current_date_str}] {status}: {desc}</span><br>
-        <span style="color:black;">▶ 다음달 예측값은 {yhat_val} 입니다.</span><br>
+        <span style="color:black;">▶ 다음달 예측값은 {next_yhat} 입니다.</span><br>
     """
     if interpretation:
         message_md += f'<span style="color:black;">▶ {interpretation}</span><br>'
