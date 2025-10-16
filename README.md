@@ -59,7 +59,10 @@ ANTI_MONI_Resistant_Alarm/
 │   ├── 감염_카운트_first isolation_연도별.py
 │   ├── 전체결측_통계.py
 │   ├── 원데이터에서 데이터 정제(isolation).py
-│   └── 표본감시_카운트_first isolation.py
+|   ├── 표본감시_카운트_first isolation.py
+|   ├── 표본감시_내부.sql        데이터베이스에서 내부데이터 로딩하는 sql코드
+|   ├── CRE_내부.sql
+│   └── FOR_PREDICT.sql
 │
 ├── fonts/                     시각화용 한글 폰트
 │
