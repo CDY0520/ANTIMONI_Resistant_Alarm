@@ -33,6 +33,7 @@ Streamlit 대시보드를 활용한 실시간 시각화 및 경보 현황 제공
 
 # 폴더 구조
 
+```
 ANTI_MONI_Resistant_Alarm/
 │
 ├── alarm_dashboard/           Streamlit 대시보드 코드
@@ -69,6 +70,7 @@ ANTI_MONI_Resistant_Alarm/
 ├── requirements.txt
 ├── README.md
 └── .gitignore
+```
 
 ---
 
