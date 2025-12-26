@@ -36,8 +36,12 @@ Streamlit 대시보드를 활용한 실시간 시각화 및 경보 현황 제공
 ```
 ANTI_MONI_Resistant_Alarm/
 │
-├── alarm_dashboard/           Streamlit 대시보드 코드
+├── alarm_dashboard/           Streamlit 대시보드 코드, 대시보드 input 데이터
 │   ├── stream_app.py
+|   ├── CRE(병원내부)_경보결과.xlsx
+│   ├── CRE(전국)_경보결과.xlsx
+│   ├── CRE(충북)_경보결과.xlsx
+│   └── 표본감시(병원내부)_경보결과.xlsx
 │   └── 통합 경보 레벨 설명표.xlsx
 │
 ├── analysis/                  상관분석 및 변수 선택 코드
@@ -46,13 +50,7 @@ ANTI_MONI_Resistant_Alarm/
 │   ├── 상관분석_표본감시.py
 │   └── 표본감시_변수선택.py
 │
-├── input_data/                대시보드 입력용 경보 결과 데이터
-│   ├── CRE(병원내부)_경보결과.xlsx
-│   ├── CRE(전국)_경보결과.xlsx
-│   ├── CRE(충북)_경보결과.xlsx
-│   └── 표본감시(병원내부)_경보결과.xlsx
-│
-├── predictive_model/          Prophet 기반 예측 모델 코드
+├── predictive_model/          Prophet 기반 예측 모델 코드, 모델 input 데이터
 │   ├── CRE_prophet.py
 │   └── 표본감시_prophet.py
 │
@@ -61,7 +59,7 @@ ANTI_MONI_Resistant_Alarm/
 │   ├── 전체결측_통계.py
 │   ├── 원데이터에서 데이터 정제(isolation).py
 |   ├── 표본감시_카운트_first isolation.py
-|   ├── 표본감시_내부.sql        데이터베이스에서 내부데이터 로딩하는 sql코드
+|   ├── 표본감시_내부.sql       데이터베이스에서 내부데이터 로딩하는 sql코드
 |   ├── CRE_내부.sql
 │   └── FOR_PREDICT.sql
 │
