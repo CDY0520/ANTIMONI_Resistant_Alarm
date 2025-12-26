@@ -16,12 +16,17 @@ logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
 logging.getLogger('prophet').setLevel(logging.WARNING)
 warnings.filterwarnings('ignore')
 
-# 폰트 설정
-font_path = os.path.join("fonts", "NotoSansKR-VariableFont_wght.ttf")
-if not os.path.exists(font_path):
-    st.error(f"❌ 폰트 파일 경로 오류: {font_path} 에 파일이 없습니다.")
+# 폰트 설정 (절대경로 Docker/로컬 공통 안전 방식)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # /app/alarm_dashboard
+FONT_PATH = os.path.abspath(
+    os.path.join(BASE_DIR, "..", "fonts", "NotoSansKR-VariableFont_wght.ttf")
+)
+
+if not os.path.exists(FONT_PATH):
+    st.error(f"❌ 폰트 파일 경로 오류: {FONT_PATH} 에 파일이 없습니다.")
+    st.stop()
 else:
-    fontprop = fm.FontProperties(fname=font_path)
+    fontprop = fm.FontProperties(fname=FONT_PATH)
     plt.rcParams['font.family'] = fontprop.get_name()
     plt.rcParams['axes.unicode_minus'] = False
 
